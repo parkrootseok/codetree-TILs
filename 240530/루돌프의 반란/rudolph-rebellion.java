@@ -113,43 +113,43 @@ public class Main {
 		// 2. 받은 턴 수 만큼 게임 진행
 		for (int curTurnNumber = 0; curTurnNumber < totalTurnNumber; curTurnNumber++) {
 
-			System.out.println(curTurnNumber + "번 째 턴 시작");
+			// System.out.println(curTurnNumber + "번 째 턴 시작");
 
-			for (Santa santa : santas) {
-				System.out.println(santa);
-			}
+			// for (Santa santa : santas) {
+			// 	System.out.println(santa);
+			// }
 
 			// 2-1. 루돌프 이동
 			ludolph.move();
 
-			System.out.println("----2-1. 루돌프 이동----");
-			System.out.println(ludolph.pos);
+			// System.out.println("----2-1. 루돌프 이동----");
+			// System.out.println(ludolph.pos);
 
 			// 2-2. 충돌 발생 여부 확인(루돌프에 의해 발생)
 			if (ludolph.hasConflict()) {
-				System.out.println("----2-2. 루돌프에 의해 충돌 발생----");
+				// System.out.println("----2-2. 루돌프에 의해 충돌 발생----");
 
 				// 2-2-1. 상호작용 발생
 				interactionByLudolph();
-				System.out.println("----2-2-1. 상호 작용 발생 후----");
-				for (Santa santa : santas) {
-					System.out.println(santa.number+ " " + santa.pos);
-				}
+				// System.out.println("----2-2-1. 상호 작용 발생 후----");
+				// for (Santa santa : santas) {
+				// 	System.out.println(santa.number+ " " + santa.pos);
+				// }
 
 			}
 
-			System.out.println("----2-4. 산타 이동----");
+			// System.out.println("----2-4. 산타 이동----");
 			// 2-3. 산타 이동
 			for (Santa santa : santas) {
 
 				if (santa.isAlive && santa.isMovable) {
 					santa.move();
-					System.out.println(santa.number+ " " +santa.pos);
+					// System.out.println(santa.number+ " " +santa.pos);
 				}
 
 			}
 
-			System.out.println("----2-5. 산타에 의해 충돌 발생----");
+			// System.out.println("----2-5. 산타에 의해 충돌 발생----");
 			// 2-4. 충돌 발생 여부 확인(산타에 의해 발생)
 			for (Santa santa : santas) {
 				if (santa.isAlive) {
@@ -160,12 +160,12 @@ public class Main {
 			// 2-5. 충돌한 산타가 있을 경우 상호작용 발생
 			if (!Objects.isNull(conflictSanta)) {
 				interactionBySanta();
-				System.out.println("----2-6. 상호 작용 발생----");
-				for (Santa santa : santas) {
-					if(santa.isAlive) {
-						System.out.println(santa.number+ " " +santa.pos);
-					}
-				}
+				// System.out.println("----2-6. 상호 작용 발생----");
+				// for (Santa santa : santas) {
+				// 	if(santa.isAlive) {
+				// 		System.out.println(santa.number+ " " +santa.pos);
+				// 	}
+				// }
 			}
 
 			// 2-6. 기절한 산타들 딜레이 증가 후 상태 초기화 및 탈락하지 않은 산타 점수 증가
