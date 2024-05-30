@@ -3,8 +3,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.PriorityQueue;
+
+import com.sun.org.apache.xpath.internal.objects.XObject;
 
 /**
  * CT_루돌프의반란
@@ -42,7 +46,6 @@ import java.util.PriorityQueue;
  *  1-1. 크기, 턴 수, 산타수, 루돌프 힘, 산타 힘 입력
  *  1-2. 루돌프 초기 위치 입력 후 루돌프 객체 생성
  *  1-3. 산타 번호, 초기 위치를 받고 산타 객체를 생성
- *
  *  2. 게임 진행
  *   2-1. 루돌프 이동
  *   2-2. 충돌 발생 여부 확인(루돌프에 의해 발생)
@@ -107,27 +110,46 @@ public class Main {
 		// 1. 입력
 		input();
 
-		// 2. 게임 진행
+		// 2. 받은 턴 수 만큼 게임 진행
 		for (int curTurnNumber = 0; curTurnNumber < totalTurnNumber; curTurnNumber++) {
+
+			System.out.println(curTurnNumber + "번 째 턴 시작");
+
+			for (Santa santa : santas) {
+				System.out.println(santa);
+			}
 
 			// 2-1. 루돌프 이동
 			ludolph.move();
 
+			System.out.println("----2-1. 루돌프 이동----");
+			System.out.println(ludolph.pos);
+
 			// 2-2. 충돌 발생 여부 확인(루돌프에 의해 발생)
 			if (ludolph.hasConflict()) {
+				System.out.println("----2-2. 루돌프에 의해 충돌 발생----");
 
-				// 2-2-1. 충돌이 발생한 경우 상호작용 발생
-				interaction();
+				// 2-2-1. 상호작용 발생
+				interactionByLudolph();
+				System.out.println("----2-2-1. 상호 작용 발생 후----");
+				for (Santa santa : santas) {
+					System.out.println(santa.number+ " " + santa.pos);
+				}
 
 			}
 
+			System.out.println("----2-4. 산타 이동----");
 			// 2-3. 산타 이동
 			for (Santa santa : santas) {
+
 				if (santa.isAlive && santa.isMovable) {
 					santa.move();
+					System.out.println(santa.number+ " " +santa.pos);
 				}
+
 			}
 
+			System.out.println("----2-5. 산타에 의해 충돌 발생----");
 			// 2-4. 충돌 발생 여부 확인(산타에 의해 발생)
 			for (Santa santa : santas) {
 				if (santa.isAlive) {
@@ -137,7 +159,13 @@ public class Main {
 
 			// 2-5. 충돌한 산타가 있을 경우 상호작용 발생
 			if (!Objects.isNull(conflictSanta)) {
-				interaction();
+				interactionBySanta();
+				System.out.println("----2-6. 상호 작용 발생----");
+				for (Santa santa : santas) {
+					if(santa.isAlive) {
+						System.out.println(santa.number+ " " +santa.pos);
+					}
+				}
 			}
 
 			// 2-6. 기절한 산타들 딜레이 증가 후 상태 초기화 및 탈락하지 않은 산타 점수 증가
@@ -154,13 +182,13 @@ public class Main {
 					// 증가한 값이 2라면 상태 초기화
 					if (++santa.delay == 2) {
 						santa.isMovable = true;
+                        santa.delay = 0;
 					}
 
 				}
 
 			}
 
-			// 2-7. 살아있는 산타가 없다면 게임 종료
 			if (isFinished) {
 				break;
 			}
@@ -176,20 +204,20 @@ public class Main {
 
 	}
 
-	public static void interaction() {
+	public static void interactionByLudolph() {
 
 		while (true) {
 
 			// 같은 위치에 존재한는 산타들이 있는지 확인
 			Santa findSanta = null;
-			for (Santa santa : santas) {
+			for (Santa santa : santas)  {
 
 				if (conflictSanta.number == santa.number) {
 					continue;
 				}
 
 				// 같은 위치에 산타가 존재하면
-				if (conflictSanta.pos.row == santa.pos.row && conflictSanta.pos.col == santa.pos.col) {
+				if (conflictSanta.pos.row == santa.pos.row && conflictSanta.pos.col == santa.pos.col)  {
 					// 리스트에 추가
 					findSanta = santa;
 				}
@@ -198,19 +226,59 @@ public class Main {
 
 			// 같은 위치에 존재하는 산타가 없을 경우 종료
 			if (Objects.isNull(findSanta)) {
+				conflictSanta = null;
 				return;
 			}
 
-			// 충돌이 발생한 산타를 최근 진행 방향으로 한 칸 이동
+			// 충돌이 발생한 산타를 루돌프 진행 방향으로 한 칸 이동
 			findSanta.pos.row += ludolph.dr[ludolph.recentDirection];
 			findSanta.pos.col += ludolph.dc[ludolph.recentDirection];
 
-			// 충돌로 인해 이동한 위치에서도 상호 작용을 수행하기 위해 충동한 산타를 변경
+			// 충돌로 인해 이동한 위치에서도 상호 작용을 수행하기 위해 충돌한 산타를 변경
 			conflictSanta = findSanta;
 
 		}
 
 	}
+
+	public static void interactionBySanta() {
+
+		while (true) {
+
+			// 같은 위치에 존재한는 산타들이 있는지 확인
+			Santa findSanta = null;
+			for (Santa santa : santas)  {
+
+				if (conflictSanta.number == santa.number) {
+					continue;
+				}
+
+				// 같은 위치에 산타가 존재하면
+				if (conflictSanta.pos.row == santa.pos.row && conflictSanta.pos.col == santa.pos.col)  {
+					// 리스트에 추가
+					findSanta = santa;
+				}
+
+			}
+
+			// 같은 위치에 존재하는 산타가 없을 경우 종료
+			if (Objects.isNull(findSanta)) {
+				conflictSanta = null;
+				return;
+			}
+
+			// 충돌이 발생한 산타를 이동한 방향의 반대로 1칸 이동
+			findSanta.pos.row -= conflictSanta.dr[conflictSanta.recentDirection];
+			findSanta.pos.col -= conflictSanta.dc[conflictSanta.recentDirection];
+
+			// 충돌로 인해 이동한 위치에서도 상호 작용을 수행하기 위해 충돌한 산타를 변경
+			findSanta.recentDirection = conflictSanta.recentDirection;
+			conflictSanta = findSanta;
+
+		}
+
+	}
+
 
 	public static class Position {
 
@@ -223,13 +291,20 @@ public class Main {
 		}
 
 		public int getDistance(Position santa) {
-			return (int)(Math.pow((this.row - santa.row), 2) + Math.pow((this.col - santa.col), 2));
+			return (int) (Math.pow((this.row - santa.row), 2) + Math.pow((this.col - santa.col), 2));
 		}
 
 		public boolean isValid() {
 			return 1 <= row && row <= size && 1 <= col && col <= size;
 		}
 
+		@Override
+		public String toString() {
+			return "{" +
+				"row=" + row +
+				", col=" + col +
+				'}';
+		}
 	}
 
 	public static class Ludolph {
@@ -271,7 +346,7 @@ public class Main {
 					findSantas.add(santa);
 				}
 
-				// 현재 최소값보다 같을 때
+				// 현재 최소값과 동일할 때
 				else if (minDis == distance) {
 					// 우선순위 큐에 추가
 					findSantas.add(santa);
@@ -280,7 +355,7 @@ public class Main {
 			}
 
 			// 찾은 산타와 가장 가까운 거리로 이동
-			// 단, 산타는 r이 가장 크고 동잃한 경우에 c가 가장 큰 산타
+			// 단, 산타는 r이 가장 크고 동일한 경우에 c가 가장 큰 산타
 			Santa findSanta = findSantas.poll();
 			minDis = Integer.MAX_VALUE;
 
@@ -288,7 +363,7 @@ public class Main {
 			for (int dir = 0; dir < this.dr.length; dir++) {
 
 				// 기존 방향에서 이동한 방향
-				Position newPos = new Position(this.pos.row + this.dr[dir], this.pos.col + this.dc[dir]);
+				Position newPos = new Position(this.pos.row + this.dr[dir], this.pos.col +  this.dc[dir]);
 
 				// 이동한 방향이 유효한 방향이 아니라면 스킵
 				if (!newPos.isValid()) {
@@ -315,7 +390,7 @@ public class Main {
 
 		public boolean hasConflict() {
 
-			// 같은 칸에 존재하는 산타들을 탐색
+			// 충돌이 발생한 산타를 탐색
 			conflictSanta = null;
 			for (Santa santa : santas) {
 
@@ -352,10 +427,17 @@ public class Main {
 			conflictSanta.isMovable = false;
 			conflictSanta.delay = 0;
 
+			// System.out.println(conflictSanta.number + " " + conflictSanta.pos);
 			return true;
 
 		}
 
+		@Override
+		public String toString() {
+			return "Ludolph {" +
+				"pos=" + pos +
+				'}';
+		}
 	}
 
 	public static class Santa implements Comparable<Santa> {
@@ -417,7 +499,7 @@ public class Main {
 				Position newPos = new Position(this.pos.row + this.dr[dir], this.pos.col + this.dc[dir]);
 
 				// 이동할 수 없는 좌표라면 스킵
-				if (!newPos.isValid()) {
+				if (!newPos.isValid())  {
 					continue;
 				}
 
@@ -486,6 +568,7 @@ public class Main {
 			this.isMovable = false;
 			this.delay = 0;
 
+			// System.out.println(this.number+ " " +this.pos);
 			return true;
 
 		}
@@ -503,6 +586,15 @@ public class Main {
 
 		}
 
+		@Override
+		public String toString() {
+			return "Santa{" +
+				"number=" + number +
+				", pos=" + pos +
+				", score=" + score +
+				", isAlive=" + isAlive +
+				'}';
+		}
 	}
 
 }
