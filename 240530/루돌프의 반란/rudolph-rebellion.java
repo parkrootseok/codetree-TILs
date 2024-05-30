@@ -3,12 +3,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.PriorityQueue;
-
-import com.sun.org.apache.xpath.internal.objects.XObject;
 
 /**
  * CT_루돌프의반란
@@ -47,14 +42,19 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  *  1-2. 루돌프 초기 위치 입력 후 루돌프 객체 생성
  *  1-3. 산타 번호, 초기 위치를 받고 산타 객체를 생성
  *  2. 게임 진행
- *   2-1. 루돌프 이동
- *     2-1-1. 충돌 발생 여부 확인(루돌프에 의해 발생)
- *     2-1-2. 충돌이 발생한 경우 상호작용 발생
- *   2-2. 산타 이동
- *    2-2-1. 충돌 발생 여부 확인(산타에 의해 발생)
- *    2-2-2. 충돌한 산타가 있을 경우 상호작용 발생
- *   2-3. 기절한 산타들 딜레이 증가 후 상태 초기화 및 탈락하지 않은 산타 점수 증가
- *   2-4. 살아있는 산타가 없다면 게임 종료
+ *   2-1. 루돌프 이동 시작
+ *     2-1-1. 가장 가까운 위치에 존재하는 산타 찾기
+ *     2-1-2. 찾은 산타를 향해 갈 방향을 결정(단, 산타와 가장 가까운 곳으로 이동)
+ *     2-1-3. 이동 방향이 정해졌다면 이동
+ *     2-1-4. 이동이 끝났다면 충돌이 발생한 산타가 있는지 확인
+ *     2-1-5. 충돌이 발생한 하면서 산타가 탈락하지 않았다면 상호 작용 수행
+ *   2-2. 산타 이동 시작
+ *    2-2-1. 루돌프와 가장 거리가 가까운 방향 찾기
+ *    2-2-2. 이동할 수 있는 방향이 존재할 경우 이동
+ *    2-2-3. 충돌이 발생한 경우에 대한 후처리 진행
+ *   2-3. 턴 종료에 따른 후처리 작업 진행
+ *    2-3-1. 살아있는 산타들에게 점수를 부여하고 게임 종료 여부를 확인
+ *    2-3-2. 기절 상태 산타들의 상태를 확인하고 정상상태로 초기화
  **/
 public class Main {
 
@@ -110,25 +110,33 @@ public class Main {
 		input();
 
 		// 2. 받은 턴 수 만큼 게임 진행
-		for (int curTurnNumber = 0; curTurnNumber < totalTurnNumber; curTurnNumber++) {
+		for (int curTurnNumber = 1; curTurnNumber <= totalTurnNumber; curTurnNumber++) {
 
-			// 2-1. 루돌프 이동
+			// 2-1. 루돌프 이동 시작
 			ludolph.move();
 
-			// 2-2. 산타 이동
+			// 2-2. 산타 이동 시작
 			for (Santa santa : santas) {
+
+				if (!santa.isMovable || !santa.isAlive) {
+					continue;
+				}
+
 				santa.move();
+
 			}
 
-			// 2-3. 기절한 산타들 딜레이 증가 후 상태 초기화 및 탈락하지 않은 산타 점수 증가
+			// 2-3. 턴 종료에 따른 후처리 작업 진행
 			boolean isFinished = true;
 			for (Santa santa : santas) {
 
+				// 2-3-1. 살아있는 산타들에게 점수를 부여하고 게임 종료 여부를 확인
 				if (santa.isAlive) {
 					santa.score++;
 					isFinished = false;
 				}
 
+				// 2-3-2. 기절 상태 산타들의 상태를 확인하고 정상상태로 초기화
 				if (!santa.isMovable) {
 
 					// 증가한 값이 2라면 상태 초기화
@@ -187,7 +195,7 @@ public class Main {
 		public int getDistance(Position pos) {
 			return (int) (Math.pow((this.row - pos.row), 2) + Math.pow((this.col - pos.col), 2));
 		}
-		
+
 	}
 
 	public static class Ludolph {
@@ -196,16 +204,14 @@ public class Main {
 		int[] dc = {0, 0, 1, -1, 1, -1, 1, -1};
 
 		Position pos;
-		int recentDirection;
 
 		public Ludolph(int row, int col) {
 			this.pos = new Position(row, col);
-			this.recentDirection = -1;
 		}
 
 		public void move() {
 
-			// 1. 가장 가까운 위치에 존재하는 산타 찾기 (단, 2명 이상이 존재할 경우 r, c가 가장 큰 산타)
+			// 2-1-1. 가장 가까운 위치에 존재하는 산타 찾기
 			PriorityQueue<Santa> santaPQ = new PriorityQueue<>();
 			int minDistance = Integer.MAX_VALUE;
 
@@ -235,7 +241,7 @@ public class Main {
 
 			}
 
-			// 2. 찾은 산타를 향해 갈 방향을 결정(단, 산타와 가장 가까운 곳으로 이동)
+			// 2-1-2. 찾은 산타를 향해 갈 방향을 결정(단, 산타와 가장 가까운 곳으로 이동)
 			Santa findSanta = santaPQ.peek();
 			minDistance = Integer.MAX_VALUE;
 
@@ -261,7 +267,7 @@ public class Main {
 
 			}
 
-			// 3. 이동 방향이 정해졌다면 이동
+			// 2-1-3. 이동 방향이 정해졌다면 이동
 			this.pos.row += this.dr[moveDirection];
 			this.pos.col += this.dc[moveDirection];
 
@@ -289,13 +295,12 @@ public class Main {
 
 			}
 
-			// 5. 충돌이 발생한 하면서 산타가 탈락하지 않았다면 상호 작용 수행
+			// 2-1-5. 충돌이 발생한 하면서 산타가 탈락하지 않았다면 상호 작용 수행
 			if (conflictSanta != null) {
 
-				conflictSanta.checkFinish();
+				while (true) {
 
-				while (true && conflictSanta.isAlive) {
-
+					conflictSanta.checkFinish();
 					boolean isConflict = false;
 
 					// 충돌이 발생한 산타와 동일한 위치에 존재하는 산타가 있는지 확인
@@ -363,12 +368,7 @@ public class Main {
 
 		public void move() {
 
-			// 1. 기절 또는 이미 탈락한 경우 이동 불가
-			if (!this.isMovable || !this.isAlive) {
-				return;
-			}
-
-			// 2. 루돌프와 가장 거리가 가까운 방향 찾기
+			// 2-2-1. 루돌프와 가장 거리가 가까운 방향 찾기
 			int curDistance = this.pos.getDistance(ludolph.pos);
 			int minDistance = Integer.MAX_VALUE;
 			int moveDirection = -1;
@@ -401,13 +401,13 @@ public class Main {
 
 			}
 
-			// 3. 이동할 수 있는 방향이 존재할 경우 이동
+			// 2-2-2. 이동할 수 있는 방향이 존재할 경우 이동
 			if (moveDirection != -1) {
 				this.pos.row += this.dr[moveDirection];
 				this.pos.col += this.dc[moveDirection];
 			}
 
-			// 4. 산타가 이동한 후에 충돌이 발생했다면
+			// 2-2-3. 충돌이 발생한 경우에 대한 후처리 진행
 			if (this.pos.row == ludolph.pos.row && this.pos.col == ludolph.pos.col) {
 
 				// 산타의 힘만큼 점수를 획득하고
@@ -476,7 +476,7 @@ public class Main {
 			return Integer.compare(o.pos.row, this.pos.row);
 
 		}
-		
+
 	}
 
 }
