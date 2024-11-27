@@ -21,7 +21,6 @@ import java.io.*;
 
 public class Main {
 
-	public static final int EMPTY = 0;
 	public static final int WIN = 1;
 	public static final int LOSE = 2;
 	public static final int DRAW = 3;
@@ -68,42 +67,9 @@ public class Main {
 
 		public void win(int power) {
 			this.score += Math.abs((this.getPower() - power));
-			change();
-		}
-
-		// 총 교환
-		public void change() {
-
-			// 이동할 위치에서 4방 탐색을 수행해 현재 자신의 총보다 공격력이 높은 총으로 교환
-			int max = this.gun;
-			int mRow = -1;
-			int mCol = -1;
-			for (int dir = 0; dir < dr.length; dir++) {
-
-				int nRow = this.row + dr[dir];
-				int nCol = this.col + dc[dir];
-
-				if (outRange(nRow, nCol)) {
-					continue;
-				}
-
-				if (grid[nRow].get(nCol).isEmpty()) {
-					continue;
-				}
-
-				if (max < grid[nRow].get(nCol).peek()) {
-					max = grid[nRow].get(nCol).peek();
-					mRow = nRow;
-					mCol = nCol;
-				}
-
+			if (isSwable(this, this.row, this.col)) {
+				swapGun(this, this.row, this.col);
 			}
-
-			if (max != this.gun) {
-				this.gun = grid[mRow].get(mCol).poll();
-                grid[mRow].get(mCol).offer(this.gun);
-			}
-
 		}
 
 		public void lose() {
@@ -118,18 +84,15 @@ public class Main {
 
 			// 이동할 방향이 격자 밖이거나 플레이어가 존재하는 경우
 			if (outRange(nRow, nCol) || isExists(nRow, nCol)) {
-
-				int dir = direction;
+				int dir = (this.direction + 1) % 4;
 				while(true) {
-
-					int nnRow = nRow + dr[dir];
-					int nnCol = nCol + dc[dir];
-
+					int nnRow = this.row + dr[dir];
+					int nnCol = this.col + dc[dir];
 					if (!outRange(nnRow, nnCol) && !isExists(nnRow, nnCol)) {
 						this.row = nnRow;
 						this.col = nnCol;
 						this.direction = dir;
-						break;
+						return;
 					}
 
 					dir = (dir + 1) % 4;
@@ -201,7 +164,6 @@ public class Main {
 				// 이동 후
 				int cRow = players[pCount].row;
 				int cCol = players[pCount].col;
-				// System.out.println("---------1.이동 완료---------");
 
 				List<Player> candidates = getCandidates(cRow, cCol);
 				if (candidates.size() == 2) {
@@ -209,39 +171,34 @@ public class Main {
 					Player p1 = candidates.get(0);
 					Player p2 = candidates.get(1);
 
-					// 승패 확인 (p1의 승리 여부를 확인)
 					int status = judge(p1, p2);
-					// System.out.println("---------1-1.판정 완료---------\n");
-
+	
 					int tmp;
 					switch (status) {
 						case WIN:
-							// System.out.println("p1(win) / p2 (lose)\n");
 							tmp = p2.getPower();
-							swapGun(p2, p2.row, p2.col);
-							p1.win(tmp);
 							p2.lose();
+							p1.win(tmp);
+							swapGun(p2, p2.row, p2.col);
 							break;
 						case LOSE:
-							// System.out.println("p1(lose) / p2 (win)\n");
 							tmp = p1.getPower();
-							swapGun(p1, p1.row, p1.col);
-							p2.win(tmp);
 							p1.lose();
+							p2.win(tmp);
+							swapGun(p1, p1.row, p1.col);
 							break;
 						case DRAW:
-							// System.out.println("p1(draw) / p2 (draw)\n");
 							if (p1.stat > p2.stat) {
 								tmp = p2.getPower();
-								swapGun(p2, p2.row, p2.col);
-								p1.win(tmp);
 								p2.lose();
-								
+								System.out.println(p2.toString());
+								p1.win(tmp);
+								swapGun(p2, p2.row, p2.col);
 							} else {
 								tmp = p1.getPower();
-								swapGun(p1, p1.row, p1.col);
-								p2.win(tmp);
 								p1.lose();
+								p2.win(tmp);
+								swapGun(p1, p1.row, p1.col);
 							}
 							break;
 					}
@@ -249,11 +206,8 @@ public class Main {
 				}
 
 				else if (isSwable(players[pCount], cRow, cCol)) {
-					// System.out.println("---------1-2.총 획득 완료---------\n");
 					swapGun(players[pCount], cRow, cCol);
 				}
-
-				// System.out.println(players[pCount].toString());
 
 			}
 
@@ -302,7 +256,7 @@ public class Main {
 
 	public static void swapGun(Player p, int row, int col) {
 		p.gun = grid[row].get(col).poll();
-        grid[row].get(col).offer(p.gun);
+		grid[row].get(col).offer(p.gun);
 	}
 
 	public static void input() throws IOException {
@@ -315,11 +269,11 @@ public class Main {
 		grid = new ArrayList[size];
 
 		for (int row = 0; row < size; row++) {
-            grid[row] = new ArrayList<PriorityQueue<Integer>>();
+			grid[row] = new ArrayList<PriorityQueue<Integer>>();
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < size; col++) {
-                grid[row].add(new PriorityQueue<>(Collections.reverseOrder()));
-                grid[row].get(col).offer(Integer.parseInt(inputs[col]));
+				grid[row].add(new PriorityQueue<>(Collections.reverseOrder()));
+				grid[row].get(col).offer(Integer.parseInt(inputs[col]));
 			}
 		}
 
