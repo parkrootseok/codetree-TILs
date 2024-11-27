@@ -133,6 +133,7 @@ public class Main {
 
 	static List<PriorityQueue<Integer>>[] grid;
 	static Player[] players;
+	static List<Player>[][] candidates;
 
 	public static void main(String[] args) throws IOException {
 
@@ -145,45 +146,8 @@ public class Main {
 		for (int rCount = 0; rCount < roundCount; rCount++) {
 			
 			for (Player player : players) {
-
-				// 이동
 				player.move();
-
-				// 이동 후
-				int cRow = player.row;
-				int cCol = player.col;
-
-				List<Player> candidates = getCandidates(cRow, cCol);
-				if (candidates.size() == 2) {
-
-					Player p1 = candidates.get(0);
-					Player p2 = candidates.get(1);
-					
-					int status = judge(p1, p2);
-
-					switch (status) {
-						case WIN:
-							handleBattle(p1, p2);
-							break;
-						case LOSE:
-							handleBattle(p2, p1);
-							break;
-						case DRAW:
-							if (p1.stat > p2.stat) {
-								handleBattle(p1, p2);
-							} else {
-								handleBattle(p2, p1);
-							}
-							break;
-					}
-
-				}
-
-				else if (canSwap(player, cRow, cCol)) {
-					swapGun(player, cRow, cCol);
-				}
-
-
+				handleCandidate(player);
 			}
 
 		}
@@ -195,6 +159,38 @@ public class Main {
 		bw.write(sb.toString());
 		bw.close();
 
+	}
+	
+	public static void handleCandidate(Player player) {
+		
+		List<Player> c = candidates[player.row][player.col];
+		
+		if (c.size() == 2) {
+
+			Player p1 = c.get(0);
+			Player p2 = c.get(1);
+			int status = judge(p1, p2);
+
+			switch (status) {
+				case WIN:
+					handleBattle(p1, p2);
+					break;
+				case LOSE:
+					handleBattle(p2, p1);
+					break;
+				case DRAW:
+					if (p1.stat > p2.stat) {
+						handleBattle(p1, p2);
+					} else {
+						handleBattle(p2, p1);
+					}
+					break;
+			}
+			
+		} else if (canSwap(player, player.row, player.col)) {
+			swapGun(player, player.row, player.col);	
+		}
+		
 	}
 
 	public static int judge(Player p1, Player p2) {
@@ -213,7 +209,7 @@ public class Main {
 
 	public static List<Player> getCandidates(int row, int col) {
 
-		List<Player> candidates = new ArrayList<Player>();
+		List<Player> candidates = new ArrayList<>();
 
 		for (Player player : players) {
 			if (player.row == row && player.col == col) {
@@ -236,6 +232,7 @@ public class Main {
 	}
 
 	public static void handleBattle(Player winner, Player loser) {
+		
 		int power = loser.getPower();
 		loser.lose();
 		winner.win(power);
@@ -249,10 +246,11 @@ public class Main {
 		playerCount = Integer.parseInt(inputs[1]);
 		roundCount = Integer.parseInt(inputs[2]);
 
+		candidates = new List[size][size];
 		grid = new ArrayList[size];
 
 		for (int row = 0; row < size; row++) {
-			grid[row] = new ArrayList<PriorityQueue<Integer>>();
+			grid[row] = new ArrayList<>();
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < size; col++) {
 				grid[row].add(new PriorityQueue<>(Collections.reverseOrder()));
