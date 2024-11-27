@@ -23,7 +23,7 @@ public class Main {
 
 	public static final int[] dr = {-1, 0, 1, 0};
 	public static final int[] dc = {0, 1, 0, -1};
-	
+
 	public static final int WIN = 1;
 	public static final int LOSE = 2;
 
@@ -69,7 +69,7 @@ public class Main {
 				swapGun(this, this.row, this.col);
 			}
 		}
-		
+
 		public void lose() {
 
 			// 총 격자에 내려놓기
@@ -155,7 +155,7 @@ public class Main {
 
 					Player p1 = candidates.get(0);
 					Player p2 = candidates.get(1);
-					
+
 					switch (judge(p1, p2)) {
 						case WIN:
 							handleBattle(p1, p2);
@@ -194,7 +194,7 @@ public class Main {
 			return LOSE;
 		}
 		else {
-			if (p1.stat < p2.stat) {
+			if (p1.stat > p2.stat) {
 				return WIN;
 			} else {
 				return LOSE;
