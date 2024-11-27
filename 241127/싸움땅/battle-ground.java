@@ -113,7 +113,7 @@ public class Main {
 
 		public boolean isExists(int row, int col) {
 
-			for (int pCount = 0; pCount < playerCount; pCount++) {
+			for (Player player : players) {
 				if (player.row == row && player.col == col) {
 					return true;
 				}
@@ -177,8 +177,7 @@ public class Main {
 					Player p2 = candidates.get(1);
 					
 					int status = judge(p1, p2);
-
-					int tmp;
+					
 					switch (status) {
 						case WIN:
 							handleBattle(p1, p2);
