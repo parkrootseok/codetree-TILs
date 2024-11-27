@@ -66,8 +66,8 @@ public class Main {
 
 		}
 
-		public void win(Player loseP) {
-			this.score += Math.abs((this.getPower() - loseP.getPower()));
+		public void win(int power) {
+			this.score += Math.abs((this.getPower() - power));
 			change();
 		}
 
@@ -87,7 +87,7 @@ public class Main {
 					continue;
 				}
 
-				if (!grid[nRow].get(nCol).isEmpty()) {
+				if (grid[nRow].get(nCol).isEmpty()) {
 					continue;
 				}
 
@@ -136,6 +136,9 @@ public class Main {
 
 				}
 
+			} else {
+				this.row = nRow;
+				this.col = nCol;
 			}
 
 		}
@@ -210,29 +213,35 @@ public class Main {
 					int status = judge(p1, p2);
 					// System.out.println("---------1-1.판정 완료---------\n");
 
+					int tmp;
 					switch (status) {
 						case WIN:
 							// System.out.println("p1(win) / p2 (lose)\n");
-							p1.win(p2);
-							p2.lose();
+							tmp = p2.getPower();
 							swapGun(p2, p2.row, p2.col);
+							p1.win(tmp);
+							p2.lose();
 							break;
 						case LOSE:
 							// System.out.println("p1(lose) / p2 (win)\n");
-							p2.win(p1);
-							p1.lose();
+							tmp = p1.getPower();
 							swapGun(p1, p1.row, p1.col);
+							p2.win(tmp);
+							p1.lose();
 							break;
 						case DRAW:
 							// System.out.println("p1(draw) / p2 (draw)\n");
 							if (p1.stat > p2.stat) {
-								p1.win(p2);
-								p2.lose();
+								tmp = p2.getPower();
 								swapGun(p2, p2.row, p2.col);
+								p1.win(tmp);
+								p2.lose();
+								
 							} else {
-								p2.win(p1);
-								p1.lose();
+								tmp = p1.getPower();
 								swapGun(p1, p1.row, p1.col);
+								p2.win(tmp);
+								p1.lose();
 							}
 							break;
 					}
@@ -247,8 +256,6 @@ public class Main {
 				// System.out.println(players[pCount].toString());
 
 			}
-
-
 
 		}
 
