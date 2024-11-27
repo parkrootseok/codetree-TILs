@@ -67,7 +67,7 @@ public class Main {
 
 		public void win(int power) {
 			this.score += Math.abs((this.getPower() - power));
-			if (isSwable(this, this.row, this.col)) {
+			if (canSwap(this, this.row, this.col)) {
 				swapGun(this, this.row, this.col);
 			}
 		}
@@ -114,7 +114,7 @@ public class Main {
 		public boolean isExists(int row, int col) {
 
 			for (int pCount = 0; pCount < playerCount; pCount++) {
-				if (players[pCount].row == row && players[pCount].col == col) {
+				if (player.row == row && player.col == col) {
 					return true;
 				}
 			}
@@ -160,66 +160,54 @@ public class Main {
 		input();
 
 		for (int rCount = 0; rCount < roundCount; rCount++) {
-
-			for (int pCount = 0; pCount < playerCount; pCount++) {
+			
+			for (Player player : players) {
 
 				// 이동
-				players[pCount].move();
+				player.move();
 
 				// 이동 후
-				int cRow = players[pCount].row;
-				int cCol = players[pCount].col;
+				int cRow = player.row;
+				int cCol = player.col;
 
 				List<Player> candidates = getCandidates(cRow, cCol);
 				if (candidates.size() == 2) {
 
 					Player p1 = candidates.get(0);
 					Player p2 = candidates.get(1);
-
-					// 승패 확인 (p1의 승리 여부를 확인)
+					
 					int status = judge(p1, p2);
 
 					int tmp;
 					switch (status) {
 						case WIN:
-							tmp = p2.getPower();
-							p2.lose();
-							p1.win(tmp);
-							swapGun(p2, p2.row, p2.col);
+							handleBattle(p1, p2);
 							break;
 						case LOSE:
-							tmp = p1.getPower();
-							p1.lose();
-							p2.win(tmp);
-							swapGun(p1, p1.row, p1.col);
+							handleBattle(p2, p1);
 							break;
 						case DRAW:
 							if (p1.stat > p2.stat) {
-								tmp = p2.getPower();
-								p2.lose();
-								p1.win(tmp);
-								swapGun(p2, p2.row, p2.col);
+								handleBattle(p1, p2);
 							} else {
-								tmp = p1.getPower();
-								p1.lose();
-								p2.win(tmp);
-								swapGun(p1, p1.row, p1.col);
+								handleBattle(p2, p1);
 							}
 							break;
 					}
 
 				}
 
-				else if (isSwable(players[pCount], cRow, cCol)) {
-					swapGun(players[pCount], cRow, cCol);
+				else if (canSwap(player, cRow, cCol)) {
+					swapGun(player, cRow, cCol);
 				}
+
 
 			}
 
 		}
 
-		for (int pCount = 0; pCount < playerCount; pCount++) {
-			sb.append(players[pCount].score).append(" ");
+		for (Player player : players) {
+			sb.append(player.score).append(" ");
 		}
 
 		bw.write(sb.toString());
@@ -245,9 +233,9 @@ public class Main {
 
 		List<Player> candidates = new ArrayList<Player>();
 
-		for (int pCount = 0; pCount < playerCount; pCount++) {
-			if (players[pCount].row == row && players[pCount].col == col) {
-				candidates.add(players[pCount]);
+		for (Player player : players) {
+			if (player.row == row && player.col == col) {
+				candidates.add(player);
 			}
 		}
 
@@ -255,7 +243,7 @@ public class Main {
 
 	}
 
-	public static boolean isSwable(Player p, int row, int col) {
+	public static boolean canSwap(Player p, int row, int col) {
 		return !grid[row].get(col).isEmpty() && p.gun < grid[row].get(col).peek();
 	}
 
@@ -263,6 +251,13 @@ public class Main {
 		int tmp = p.gun;
 		p.gun = grid[row].get(col).poll();
 		grid[row].get(col).offer(tmp);
+	}
+
+	public static void handleBattle(Player winner, Player loser) {
+		int power = loser.getPower();
+		loser.lose();
+		winner.win(power);
+		swapGun(loser, loser.row, loser.col);
 	}
 
 	public static void input() throws IOException {
