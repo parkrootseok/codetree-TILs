@@ -85,25 +85,18 @@ public class Main {
 
 			// 이동할 방향이 격자 밖이거나 플레이어가 존재하는 경우
 			if (outRange(nRow, nCol) || isExists(nRow, nCol)) {
-
 				int dir = (this.direction + 1) % 4;
-
 				while(true) {
-
 					int nnRow = this.row + dr[dir];
 					int nnCol = this.col + dc[dir];
-
 					if (!outRange(nnRow, nnCol) && !isExists(nnRow, nnCol)) {
 						this.row = nnRow;
 						this.col = nnCol;
 						this.direction = dir;
 						break;
 					}
-
 					dir = (dir + 1) % 4;
-
 				}
-
 			} else {
 				this.row = nRow;
 				this.col = nCol;
@@ -112,15 +105,12 @@ public class Main {
 		}
 
 		public boolean isExists(int row, int col) {
-
 			for (Player player : players) {
 				if (player.row == row && player.col == col) {
 					return true;
 				}
 			}
-
 			return false;
-
 		}
 
 		public boolean outRange(int row, int col) {
@@ -129,13 +119,6 @@ public class Main {
 
 		public int getPower() {
 			return stat + gun;
-		}
-
-		@Override
-		public String toString() {
-			return "Player(" + number + ")"
-				+ "[r:" + row + ",c:" + col + ",d:" + direction + "]"
-				+ "[s:" + stat + ",g:" + gun + "]";
 		}
 
 	}
@@ -177,7 +160,7 @@ public class Main {
 					Player p2 = candidates.get(1);
 					
 					int status = judge(p1, p2);
-					
+
 					switch (status) {
 						case WIN:
 							handleBattle(p1, p2);
