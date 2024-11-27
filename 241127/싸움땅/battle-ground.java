@@ -72,6 +72,7 @@ public class Main {
 			}
 		}
 
+
 		public void lose() {
 
 			// 총 격자에 내려놓기
@@ -84,15 +85,19 @@ public class Main {
 
 			// 이동할 방향이 격자 밖이거나 플레이어가 존재하는 경우
 			if (outRange(nRow, nCol) || isExists(nRow, nCol)) {
+
 				int dir = (this.direction + 1) % 4;
+
 				while(true) {
+
 					int nnRow = this.row + dr[dir];
 					int nnCol = this.col + dc[dir];
+
 					if (!outRange(nnRow, nnCol) && !isExists(nnRow, nnCol)) {
 						this.row = nnRow;
 						this.col = nnCol;
 						this.direction = dir;
-						return;
+						break;
 					}
 
 					dir = (dir + 1) % 4;
@@ -171,8 +176,9 @@ public class Main {
 					Player p1 = candidates.get(0);
 					Player p2 = candidates.get(1);
 
+					// 승패 확인 (p1의 승리 여부를 확인)
 					int status = judge(p1, p2);
-	
+
 					int tmp;
 					switch (status) {
 						case WIN:
@@ -191,7 +197,6 @@ public class Main {
 							if (p1.stat > p2.stat) {
 								tmp = p2.getPower();
 								p2.lose();
-								System.out.println(p2.toString());
 								p1.win(tmp);
 								swapGun(p2, p2.row, p2.col);
 							} else {
@@ -255,8 +260,9 @@ public class Main {
 	}
 
 	public static void swapGun(Player p, int row, int col) {
+		int tmp = p.gun;
 		p.gun = grid[row].get(col).poll();
-		grid[row].get(col).offer(p.gun);
+		grid[row].get(col).offer(tmp);
 	}
 
 	public static void input() throws IOException {
