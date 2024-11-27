@@ -87,12 +87,12 @@ public class Main {
 					continue;
 				}
 
-				if (grid[nRow][nCol] <= EMPTY) {
+				if (!grid[nRow].get(nCol).isEmpty()) {
 					continue;
 				}
 
-				if (max < grid[nRow][nCol]) {
-					max = grid[nRow][nCol];
+				if (max < grid[nRow].get(nCol).peek()) {
+					max = grid[nRow].get(nCol).peek();
 					mRow = nRow;
 					mCol = nCol;
 				}
@@ -100,8 +100,8 @@ public class Main {
 			}
 
 			if (max != this.gun) {
-				grid[mRow][mCol] = this.gun;
-				this.gun = max;
+				this.gun = grid[mRow].get(mCol).poll();
+                grid[mRow].get(mCol).offer(this.gun);
 			}
 
 		}
@@ -109,7 +109,7 @@ public class Main {
 		public void lose() {
 
 			// 총 격자에 내려놓기
-			grid[this.row][this.col] = this.gun;
+			grid[this.row].get(this.col).offer(this.gun);
 			this.gun = 0;
 
 			// 현재 위치에서 현재 방향으로 이동
@@ -177,7 +177,7 @@ public class Main {
 	static int playerCount;
 	static int roundCount;
 
-	static int[][] grid;
+	static List<PriorityQueue<Integer>>[] grid;
 	static Player[] players;
 
 	public static void main(String[] args) throws IOException {
@@ -290,13 +290,12 @@ public class Main {
 	}
 
 	public static boolean isSwable(Player p, int row, int col) {
-		return EMPTY != grid[row][col] && p.gun < grid[row][col];
+		return !grid[row].get(col).isEmpty() && p.gun < grid[row].get(col).peek();
 	}
 
 	public static void swapGun(Player p, int row, int col) {
-		int tmp = grid[row][col];
-		grid[row][col] = p.gun;
-		p.gun = tmp;
+		p.gun = grid[row].get(col).poll();
+        grid[row].get(col).offer(p.gun);
 	}
 
 	public static void input() throws IOException {
@@ -306,11 +305,14 @@ public class Main {
 		playerCount = Integer.parseInt(inputs[1]);
 		roundCount = Integer.parseInt(inputs[2]);
 
-		grid = new int[size][size];
+		grid = new ArrayList[size];
+
 		for (int row = 0; row < size; row++) {
+            grid[row] = new ArrayList<PriorityQueue<Integer>>();
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < size; col++) {
-				grid[row][col] = Integer.parseInt(inputs[col]);
+                grid[row].add(new PriorityQueue<>(Collections.reverseOrder()));
+                grid[row].get(col).offer(Integer.parseInt(inputs[col]));
 			}
 		}
 
