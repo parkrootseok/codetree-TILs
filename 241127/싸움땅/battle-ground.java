@@ -21,13 +21,11 @@ import java.io.*;
 
 public class Main {
 
-	public static final int WIN = 1;
-	public static final int LOSE = 2;
-	public static final int DRAW = 3;
-
-	// 상, 우, 하, 좌 (0, 1, 2, 3)
 	public static final int[] dr = {-1, 0, 1, 0};
 	public static final int[] dc = {0, 1, 0, -1};
+	
+	public static final int WIN = 1;
+	public static final int LOSE = 2;
 
 	public static class Player {
 
@@ -71,8 +69,7 @@ public class Main {
 				swapGun(this, this.row, this.col);
 			}
 		}
-
-
+		
 		public void lose() {
 
 			// 총 격자에 내려놓기
@@ -143,7 +140,7 @@ public class Main {
 		input();
 
 		for (int rCount = 0; rCount < roundCount; rCount++) {
-			
+
 			for (Player player : players) {
 
 				// 이동
@@ -159,21 +156,12 @@ public class Main {
 					Player p1 = candidates.get(0);
 					Player p2 = candidates.get(1);
 					
-					int status = judge(p1, p2);
-
-					switch (status) {
+					switch (judge(p1, p2)) {
 						case WIN:
 							handleBattle(p1, p2);
 							break;
 						case LOSE:
 							handleBattle(p2, p1);
-							break;
-						case DRAW:
-							if (p1.stat > p2.stat) {
-								handleBattle(p1, p2);
-							} else {
-								handleBattle(p2, p1);
-							}
 							break;
 					}
 
@@ -206,14 +194,18 @@ public class Main {
 			return LOSE;
 		}
 		else {
-			return DRAW;
+			if (p1.stat < p2.stat) {
+				return WIN;
+			} else {
+				return LOSE;
+			}
 		}
 
 	}
 
 	public static List<Player> getCandidates(int row, int col) {
 
-		List<Player> candidates = new ArrayList<Player>();
+		List<Player> candidates = new ArrayList<>();
 
 		for (Player player : players) {
 			if (player.row == row && player.col == col) {
@@ -252,7 +244,7 @@ public class Main {
 		grid = new ArrayList[size];
 
 		for (int row = 0; row < size; row++) {
-			grid[row] = new ArrayList<PriorityQueue<Integer>>();
+			grid[row] = new ArrayList<>();
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < size; col++) {
 				grid[row].add(new PriorityQueue<>(Collections.reverseOrder()));
