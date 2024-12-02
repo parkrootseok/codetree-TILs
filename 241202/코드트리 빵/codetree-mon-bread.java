@@ -1,263 +1,253 @@
 import java.util.*;
 import java.io.*;
 
+import inflearn.sec05.solution.Person;
+
 /**
- * CT_코드트리빵 
+ * CT_코드트리빵
  * @author parkrootseok
  **/
 
 public class Main {
-	
-	public static class Position {
-		
+
+	public static class Node implements Comparable<Node> {
+
 		int row;
 		int col;
-		
-		Position(int row, int col) {
+		int direction;
+		int dist;
+
+		public Node(int row, int col) {
 			this.row = row;
 			this.col = col;
 		}
-		
-		public boolean isMovable() {
-		
-			if (this.row < 0 || size <= this.row || this.col < 0 || size <= this.col) {
-				return false;
-			}
-			
-			if (grid[this.row][this.col] == WALL || grid[this.row][this.col] == PERSON) {
-				return false;
-			}
-			
-			return true;
-			
+
+		public Node(int row, int col, int dist) {
+			this.row = row;
+			this.col = col;
+			this.dist = dist;
 		}
-		
-		public boolean isEqual(Position p) {
-			return this.row == p.row && this.col == p.col;
+
+		public Node(int row, int col, int direction, int dist) {
+			this.row = row;
+			this.col = col;
+			this.direction = direction;
+			this.dist = dist;
 		}
-		
-		public int getDistance(Position p) {
-			return Math.abs(this.row - p.row) + Math.abs(this.col - p.col);
+
+		public boolean isEqual(Node n) {
+			return this.row == n.row && this.col == n.col;
 		}
-		
-		
-		
-	}
-	
-	public static class Basecamp implements Comparable<Basecamp>{
-		
-		Position position;
-		boolean isUsed;
-		
-		Basecamp(int row, int col) {
-			this.position = new Position(row, col);
-		}
-		
+
 		@Override
-		public int compareTo(Basecamp o) {
-			
-			if (this.position.row == o.position.row) {
-				return Integer.compare(this.position.col, o.position.col);
+		public int compareTo(Node n) {
+
+			if (this.dist == n.dist) {
+
+				if (this.row == n.row) {
+					return Integer.compare(this.col, n.col);
+				}
+
+				return Integer.compare(this.row, n.row);
+
 			}
-			
-			return Integer.compare(this.position.row, o.position.row);
-			
+
+			return Integer.compare(this.dist, n.dist);
+
 		}
 
 	}
-	
-	public static class Store {
-		
-		Position position;
-		boolean isArrived;
-		
-		Store(int row, int col) {
-			this.position = new Position(row, col);
-		}
-		
-	}
-	
-	public static class Person {
-		
-		int index;
-		Position position;
-		boolean isStart;
-		
-		Person(int index) {
-			this.index = index;
-		}
-		
-		public void move() {
-			
-			int min = Integer.MAX_VALUE;
-			Position candidate = null;
-			Store goal = stores[index];
-			for (int dir = 0; dir < dr.length; dir++) {
-				
-				int nRow = this.position.row + dr[dir];
-				int nCol = this.position.col + dc[dir];
-				Position nPos = new Position(nRow, nCol);
-				
-				if (!nPos.isMovable()) {
-					continue;
-				}
-				
-				int distance = goal.position.getDistance(new Position(nRow, nCol));
-				if (min > distance) {
-					min = distance;
-					candidate = nPos;
-				}
-				
-			}
-			
-			grid[this.position.row][this.position.col] = EMPTY;
-			this.position = candidate;
-			grid[candidate.row][candidate.col] = PERSON;
-			
-			if (stores[this.index].position.isEqual(this.position)) {
-				stores[this.index].isArrived = true;
-			}
-				
-		}
-		
-		public void start() {
-		
-			List<Basecamp> candidates = new ArrayList<>();
-			int min = Integer.MAX_VALUE;
-			Store goal = stores[index];
-			for (Basecamp b : basecamps) {
-				
-				if (b.isUsed) {
-					continue;
-				}
-				
-				int distance = goal.position.getDistance(b.position);
-				
-				if (min > distance) {
-					min = distance;
-					candidates.clear();
-					candidates.add(b);
-				} else if (min == distance) {
-					candidates.add(b);
-				}
-				
-			}
-			
-			Collections.sort(candidates);
-			
-			Basecamp selected = candidates.get(0);
-			selected.isUsed = true;
-			this.position = new Position(selected.position.row, selected.position.col);
-			this.isStart = true;
-			
-		}
-		
-	}
-	
+
 	public static final int EMPTY = 0;
 	public static final int BASECAMP = 1;
 	public static final int WALL = 2;
-	public static final int PERSON = 3;
-	
+
 	public static final int[] dr = {-1, 0, 0, 1};
 	public static final int[] dc = {0, -1, 1, 0};
-	
+
 	static BufferedReader br;
 	static BufferedWriter bw;
 	static StringBuilder sb;
-	
+
 	static int size;
 	static int[][] grid;
 	static int personCount;
-	
-	static Person[] people;
-	static List<Basecamp> basecamps;
-	static Store[] stores;
-	
+
+	static Node[] stores;
+	static Node[] people;
+
 	public static void main(String[] args) throws IOException {
-		
+
 		br = new BufferedReader(new InputStreamReader(System.in));
 		bw = new BufferedWriter(new OutputStreamWriter(System.out));
 		sb = new StringBuilder();
-		
+
 		input();
-		
+
 		int time = 0;
-		while (!isFinish()) {
-			
-			for (int pCount = 0; pCount < personCount; pCount++) {
-				Person player = people[pCount]; 
-				if (stores[pCount].isArrived) {
-					continue;
-				}
-				
-				if (player.isStart) {
-					player.move();
-				} 
-			}
-			
+		while (!isFinished()) {
+
+			moveStore();
+
 			if (time < personCount) {
-				if (!people[time].isStart) {
-					people[time].start();
-				} 
-			} 
-			
-			for (Basecamp b : basecamps) {
-				if (b.isUsed) {
-					grid[b.position.row][b.position.col] = WALL;
-				}
+				moveBasecamp(time);
 			}
-	
+
 			time++;
-			
 		}
-		
+
 		sb.append(time);
 		bw.write(sb.toString());
 		bw.close();
-	
+
 	}
-	
-	public static boolean isFinish() {
-		
-		for (Store s : stores) {
-			if (!s.isArrived) {
+
+	public static void moveStore() {
+
+		for (int pCount = 0; pCount < personCount; pCount++) {
+
+			Node person = people[pCount];
+			Node store = stores[pCount];
+
+			if (outRange(person.row, person.col) || person.isEqual(store)) {
+				continue;
+			}
+
+			int dir = getDirection(person, store);
+			person.row += dr[dir];
+			person.col += dc[dir];
+
+		}
+
+		for (int pCount = 0; pCount < personCount; pCount++) {
+
+			if (people[pCount].isEqual(stores[pCount])) {
+				grid[people[pCount].row][people[pCount].col] = WALL;
+			}
+		}
+
+	}
+
+	public static int getDirection(Node person, Node store) {
+
+		boolean[][] isVisited = new boolean[size][size];
+		PriorityQueue<Node> nodePQ = new PriorityQueue<>();
+		nodePQ.offer(new Node(person.row, person.col, -1, 0));
+		isVisited[person.row][person.col] = true;
+
+		while (!nodePQ.isEmpty()) {
+
+			Node curN = nodePQ.poll();
+
+			if (store.isEqual(curN)) {
+				return curN.direction;
+			}
+
+			for (int dir = 0; dir < dr.length; dir++) {
+
+				int nRow = curN.row + dr[dir];
+				int nCol = curN.col + dc[dir];
+
+				if (outRange(nRow, nCol) || isVisited[nRow][nCol] || grid[nRow][nCol] == WALL) {
+					continue;
+				}
+
+				if (curN.direction == -1) {
+					isVisited[nRow][nCol] = true;
+					nodePQ.offer(new Node(nRow, nCol, dir, curN.dist + 1));
+				} else {
+					isVisited[nRow][nCol] = true;
+					nodePQ.offer(new Node(nRow, nCol, curN.direction, curN.dist + 1));
+				}
+
+			}
+
+		}
+
+		return 0;
+
+	}
+
+	public static void moveBasecamp(int time) {
+
+		boolean[][] isVisited = new boolean[size][size];
+		PriorityQueue<Node> nodePQ = new PriorityQueue<>();
+		nodePQ.offer(new Node(stores[time].row, stores[time].col, 0));
+		isVisited[stores[time].row][stores[time].col] = true;
+
+		while (!nodePQ.isEmpty()) {
+
+			Node curN = nodePQ.poll();
+
+			if (grid[curN.row][curN.col] == BASECAMP) {
+				grid[curN.row][curN.col] = WALL;
+				people[time].row = curN.row;
+				people[time].col = curN.col;
+				return;
+			}
+
+			for (int dir = 0; dir < dr.length; dir++) {
+
+				int nRow = curN.row + dr[dir];
+				int nCol = curN.col + dc[dir];
+
+				if (outRange(nRow, nCol) || isVisited[nRow][nCol] || grid[nRow][nCol] == WALL) {
+					continue;
+				}
+
+				isVisited[nRow][nCol] = true;
+				nodePQ.offer(new Node(nRow, nCol, curN.dist + 1));
+
+			}
+
+		}
+
+	}
+
+	public static boolean outRange(int row, int col) {
+		return row < 0 || size <= row || col < 0 || size <= col;
+	}
+
+	public static boolean isFinished() {
+
+		for (int pCount = 0; pCount < personCount; pCount++) {
+			if (!people[pCount].isEqual(stores[pCount])) {
 				return false;
 			}
 		}
-		
+
 		return true;
-		
+
 	}
-	
+
 	public static void input() throws IOException {
-		
+
 		String[] inputs = br.readLine().trim().split(" ");
 		size = Integer.parseInt(inputs[0]);
 		personCount = Integer.parseInt(inputs[1]);
-		
+
 		grid = new int[size][size];
-		basecamps = new ArrayList<>();
 		for (int row = 0; row < size; row++) {
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < size; col++) {
 				grid[row][col] = Integer.parseInt(inputs[col]);
-				if (grid[row][col] == BASECAMP) {
-					basecamps.add(new Basecamp(row, col));
-				}
 			}
 		}
-		
-		people = new Person[personCount];
-		stores = new Store[personCount];
+
+		people = new Node[personCount];
+		stores = new Node[personCount];
 		for (int pCount = 0; pCount < personCount; pCount++) {
+
 			inputs = br.readLine().trim().split(" ");
+
 			int row = Integer.parseInt(inputs[0]) - 1;
 			int col = Integer.parseInt(inputs[1]) - 1;
-			stores[pCount] = new Store(row, col);
-			people[pCount] = new Person(pCount);
+
+			stores[pCount] = new Node(row, col);
+			people[pCount] = new Node(-1, -1);
+
 		}
-		
+
 	}
 
 }
