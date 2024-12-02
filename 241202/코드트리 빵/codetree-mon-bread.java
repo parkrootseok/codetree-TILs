@@ -1,13 +1,10 @@
 import java.util.*;
 import java.io.*;
 
-import inflearn.sec05.solution.Person;
-
 /**
  * CT_코드트리빵
  * @author parkrootseok
  **/
-
 public class Main {
 
 	public static class Node implements Comparable<Node> {
