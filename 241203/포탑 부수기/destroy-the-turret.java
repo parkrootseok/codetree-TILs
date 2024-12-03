@@ -90,7 +90,6 @@ public class Main {
 		
 		input();
 		
-		
 		for (int rCount = 1; rCount <= roundCount; rCount++) {
 			
 			if (isFinished()) {
@@ -112,13 +111,6 @@ public class Main {
 			
 			// 3. 부서진 포탑 체크
 			remove(attacker);
-			
-			for (int row = 0; row < rowSize; row++) {
-				for (int col = 0; col < colSize; col++) {
-					System.out.print(powers[row][col] + " ");
-				}
-				System.out.println();
-			}
 			
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
 			repairTop(attacker, defender);
