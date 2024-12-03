@@ -23,25 +23,20 @@ public class Main {
 		@Override
 		public int compareTo(Top t) {
 			
-			if (powers[this.row][this.col] == powers[t.row][t.col]) {
-		
-				if (this.attackedAt == t.attackedAt) {
-					
-					if (this.row + this.col == t.row + t.col) {
-					
-						return Integer.compare(t.col, this.col);
-				
-					}
-					
-					return Integer.compare(t.row + t.col, this.row + this.col);
-			
-				}	
-				
-				return Integer.compare(t.attackedAt, this.attackedAt);
-			
+			if (this.power != t.power) {
+				return Integer.compare(this.power, t.power);
 			}
-		
-			return Integer.compare(powers[this.row][this.col], powers[t.row][t.col]);
+			
+			if (this.attackedAt != t.attackedAt) {
+				return Integer.compare(t.attackedAt, this.attackedAt);
+			}
+			
+				
+			if (this.row + this.col != t.row + t.col) {
+				return Integer.compare(t.row + t.col, this.row + this.col);
+			}
+					
+			return Integer.compare(t.col, this.col);
 			
 		}
 		
@@ -78,9 +73,12 @@ public class Main {
 	static int colSize;
 	static int handicap;
 	static int roundCount;
-	static int[][] powers;
-	static boolean[][] isDamaged;
+	static Top[][] map;
 	static List<Top> tops;
+	
+	static boolean[][] isVisited;
+	static boolean[][] isDamaged;
+	
 	
 	public static void main(String[] args) throws IOException {
         
@@ -94,52 +92,39 @@ public class Main {
 		for (int rCount = 1; rCount <= roundCount; rCount++) {
 			
 			if (isFinished()) {
-				System.out.println(tops.get(0).power);
-				return;
+				break;
 			}
 			
+			Collections.sort(tops);
 			isDamaged = new boolean[rowSize][colSize];
 			
 			// 1. 공격자 선정
-			Collections.sort(tops);
 			Top attacker = tops.get(0);
+			attacker.power += handicap;
+			attacker.attackedAt = rCount;
 			isDamaged[attacker.row][attacker.col] = true;
 			
 			Top defender = tops.get(tops.size() - 1);	
 			isDamaged[defender.row][defender.col] = true;
 			
 			// 2. 공격
-			powers[attacker.row][attacker.col] += handicap;
-			attacker.attackedAt = rCount;
-			if (!attack(attacker, defender)) {
-				powers[defender.row][defender.col] -= powers[attacker.row][attacker.col];
-				
-				for (int dir = 0; dir < dr.length; dir++) {
-					
-					int nRow = (defender.row + dr[dir] + rowSize) % rowSize;
-					int nCol = (defender.col + dc[dir] + colSize) % colSize;
-					
-					if (nRow != attacker.row && nCol != attacker.col) {
-						isDamaged[nRow][nCol] = true;
-						powers[nRow][nCol] -= (powers[attacker.row][attacker.col] / 2);
-					}
-					
-				}
+			if (!lazer(attacker, defender)) {
+				bomb(attacker, defender);
 			}
-			
-			sync(attacker);
 			
 			// 3. 부서진 포탑 체크
 			remove(attacker);
-			
+
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
-			repairTop(attacker, defender);
+			repair(attacker, defender);
 			
 		}
 		
 		int max = Integer.MIN_VALUE;
-		for (Top top : tops) {
-			max = Math.max(max, top.power);
+		for (int row = 0; row < rowSize; row++) {
+			for (int col = 0; col < colSize; col++) {
+				max = Math.max(max, map[row][col].power);
+			}
 		}
 		
 		sb.append(max);
@@ -148,7 +133,7 @@ public class Main {
 		
     }
 	
-	public static boolean attack(Top attacker, Top defender) {
+	public static boolean lazer(Top attacker, Top defender) {
 		
 		boolean[][] isVisited = new boolean[rowSize][colSize];
 		
@@ -156,7 +141,7 @@ public class Main {
 		nodes.offer(new Node(attacker.row, attacker.col));
 		isVisited[attacker.row][attacker.col] = true;
 		
-		int attackPower = powers[attacker.row][attacker.col];
+		int attackPower = attacker.power;
 		
 		while(!nodes.isEmpty()) {
 			
@@ -164,12 +149,12 @@ public class Main {
 			
 			if (node.row == defender.row && node.col == defender.col) {
 				
-				powers[node.row][node.col] -= attackPower;
+				map[node.row][node.col].power -= attackPower;
 				
 				Node prev = node.prev;
 				while(!Objects.isNull(prev.prev)) {
-					powers[prev.row][prev.col] -= (attackPower / 2);
 					isDamaged[prev.row][prev.col] = true;
+					map[prev.row][prev.col].power -= (attackPower / 2);
 					prev = prev.prev;
 				}
 				
@@ -182,7 +167,7 @@ public class Main {
 				int nRow = (node.row + dr[dir] + rowSize) % rowSize;
 				int nCol = (node.col + dc[dir] + colSize) % colSize;
 				
-				if (isVisited[nRow][nCol] || powers[nRow][nCol] == 0) {
+				if (isVisited[nRow][nCol] || map[nRow][nCol].power == 0) {
 					continue;
 				}
 				
@@ -197,50 +182,60 @@ public class Main {
 		
 	}
 	
-	public static void sync(Top attacker) {
+	public static void bomb(Top attacker, Top defender) {
 		
-		attacker.power = powers[attacker.row][attacker.col];
+		defender.power -= attacker.power;
 		
-		for (int tCount = 0; tCount < tops.size(); tCount++) {
-			Top top = tops.get(tCount);
-			top.power = powers[top.row][top.col];
+		for (int dir = 0; dir < dr.length; dir++) {
+			
+			int nRow = (defender.row + dr[dir] + rowSize) % rowSize;
+			int nCol = (defender.col + dc[dir] + colSize) % colSize;
+			
+			if (map[nRow][nCol].power == 0) {
+				continue;
+			}
+			
+			if (nRow != attacker.row && nCol != attacker.col) {
+				continue;
+			}
+		
+			isDamaged[nRow][nCol] = true;
+			map[nRow][nCol].power -= (attacker.power / 2);
+			
 		}
 		
 	}
 	
 	public static void remove(Top attacker) {
+	
+		for (int row = 0; row < rowSize; row++) {
 			
-		List<Top> candidates = new ArrayList<>();
-		for (int tCount = 0; tCount < tops.size(); tCount++) {
-			
-			Top top = tops.get(tCount);
-			
-			if (top.power <= 0) {
-				powers[top.row][top.col] = 0;
-				candidates.add(top);
+			for (int col = 0; col < colSize; col++) {
+				
+				if (map[row][col].power < 0) {
+					map[row][col].power = 0;
+				}
 			}
 			
 		}
-		
-		for (Top c : candidates) {
-			tops.remove(c);
-		}
+	
 		
 	}
 	
 	
-	public static void repairTop(Top attacker, Top defender) {
+	public static void repair(Top attacker, Top defender) {
 		
-		for (int tCount = 0; tCount < tops.size(); tCount++) {
+		for (int row = 0; row < rowSize; row++) {
 			
-			Top top = tops.get(tCount);
-			
-			if (isDamaged[top.row][top.col] || top.equals(attacker) || top.equals(defender)) {
-				continue;
-			}		
-			
-			top.power++;
-			powers[top.row][top.col]++;
+			for (int col = 0; col < colSize; col++) {
+				
+				if (map[row][col].power == 0 || isDamaged[row][col]) {
+					continue;
+				}
+				
+				map[row][col].power++;
+				
+			}
 			
 		}
 
@@ -259,15 +254,16 @@ public class Main {
 		roundCount = Integer.parseInt(inputs[2]);
 		
 		handicap = (rowSize + colSize);
-		powers = new int[rowSize][colSize];
+		map = new Top[rowSize][colSize];
 		tops = new ArrayList<>();
 		for (int row = 0; row < rowSize; row++) {
 			inputs = br.readLine().trim().split(" ");
 			for (int col = 0; col < colSize; col++) {
-				powers[row][col] = Integer.parseInt(inputs[col]);
+				int power = Integer.parseInt(inputs[col]);
+				map[row][col] = new Top(row, col, power);
 				
-				if (powers[row][col] != 0) {
-					tops.add(new Top(row, col, powers[row][col]));
+				if (power > 0) {
+					tops.add(map[row][col]);
 				}
 				
 			}
