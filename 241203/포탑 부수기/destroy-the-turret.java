@@ -80,7 +80,6 @@ public class Main {
 		
 		input();
 		
-		
 		for (int rCount = 1; rCount <= roundCount; rCount++) {
 			
 			init();
@@ -173,7 +172,6 @@ public class Main {
 				nodes.offer(new Node(nRow, nCol));
 				isVisited[nRow][nCol] = true;
 				
-				
 			}
 			
 		}
@@ -241,7 +239,6 @@ public class Main {
 	
 		
 	}
-	
 	
 	public static void repair() {
 		
