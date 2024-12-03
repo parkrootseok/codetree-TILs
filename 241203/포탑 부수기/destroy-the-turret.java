@@ -123,13 +123,6 @@ public class Main {
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
 			repairTop(attacker, defender);
 			
-			for (int row = 0; row < rowSize; row++) {
-				for (int col = 0; col < colSize; col++) {
-					System.out.print(powers[row][col] + " ");
-				}
-				System.out.println();
-			}
-			
 		}
 		
 		int max = Integer.MIN_VALUE;
