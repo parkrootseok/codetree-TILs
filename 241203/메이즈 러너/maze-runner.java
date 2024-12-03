@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 
 /**
- * CT_포탑부수기
+ * CT_메이즈러너
  * @author parkrootseok
  **/
 public class Main {
@@ -211,6 +211,7 @@ public class Main {
 			for (int cCol = col; cCol <= col + cSize; cCol++) {
 				if (gRow == cRow && gCol == cCol) {
 					hasExit = true;
+					break;
 				}
 			}
 			
