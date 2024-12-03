@@ -90,6 +90,7 @@ public class Main {
 		
 		input();
 		
+		
 		for (int rCount = 1; rCount <= roundCount; rCount++) {
 			
 			if (isFinished()) {
@@ -105,7 +106,20 @@ public class Main {
 			// 2. 공격
 			powers[attacker.row][attacker.col] += handicap;
 			attacker.attackedAt = rCount;
-			attack(attacker, defender);
+			if (!attack(attacker, defender)) {
+				powers[defender.row][defender.col] -= powers[attacker.row][attacker.col];
+				
+				for (int dir = 0; dir < dr.length; dir++) {
+					
+					int nRow = (defender.row + dr[dir] + rowSize) % rowSize;
+					int nCol = (defender.col + dc[dir] + colSize) % colSize;
+					
+					if (powers[nRow][nCol] > 0) {
+						powers[nRow][nCol] -= (powers[attacker.row][attacker.col] / 2);
+					}
+					
+				}
+			}
 			
 			sync(attacker);
 			
@@ -114,7 +128,7 @@ public class Main {
 			
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
 			repairTop(attacker, defender);
-			
+
 		}
 		
 		int max = Integer.MIN_VALUE;
@@ -128,7 +142,7 @@ public class Main {
 		
     }
 	
-	public static void attack(Top attacker, Top defender) {
+	public static boolean attack(Top attacker, Top defender) {
 		
 		boolean isPossible = false;
 		boolean[][] isVisited = new boolean[rowSize][colSize];
@@ -151,8 +165,8 @@ public class Main {
 					prev = prev.prev;
 				}
 				
-				isPossible = true;
-				break;
+				return true;
+				
 			}
 			
 			for (int dir = 0; dir < 4; dir++) {
@@ -171,30 +185,13 @@ public class Main {
 			
 		}
 		
-		if (!isPossible) {
-			
-			powers[defender.row][defender.col] -= attackPower;
-			
-			for (int dir = 0; dir < dr.length; dir++) {
-				
-				int nRow = (defender.row + dr[dir] + rowSize) % rowSize;
-				int nCol = (defender.col + dc[dir] + colSize) % colSize;
-				
-				if (powers[nRow][nCol] > 0) {
-					powers[nRow][nCol] -= (attackPower / 2);
-				}
-				
-			}
-		}
-		
-		return;
+		return false;
 		
 	}
 	
 	public static void sync(Top attacker) {
 		
 		attacker.power = powers[attacker.row][attacker.col];
-        
 		for (int tCount = 0; tCount < tops.size(); tCount++) {
 			Top top = tops.get(tCount);
 			
