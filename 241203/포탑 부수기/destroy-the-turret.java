@@ -91,12 +91,12 @@ public class Main {
 		
 		for (int rCount = 1; rCount <= roundCount; rCount++) {
 			
+			init();
+			Collections.sort(tops);
+			
 			if (isFinished()) {
 				break;
 			}
-			
-			init();
-			Collections.sort(tops);
 
 			// 1. 공격자 선정
 			Top attacker = tops.get(0);
