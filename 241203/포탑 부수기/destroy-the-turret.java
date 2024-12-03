@@ -95,9 +95,9 @@ public class Main {
 				break;
 			}
 			
+			init();
 			Collections.sort(tops);
-			isDamaged = new boolean[rowSize][colSize];
-			
+
 			// 1. 공격자 선정
 			Top attacker = tops.get(0);
 			attacker.power += handicap;
@@ -114,7 +114,7 @@ public class Main {
 			
 			// 3. 부서진 포탑 체크
 			remove(attacker);
-
+			
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
 			repair(attacker, defender);
 			
@@ -133,9 +133,23 @@ public class Main {
 		
     }
 	
-	public static boolean lazer(Top attacker, Top defender) {
+	public static void init() {
 		
-		boolean[][] isVisited = new boolean[rowSize][colSize];
+		tops.clear();
+		isVisited = new boolean[rowSize][colSize];
+		isDamaged = new boolean[rowSize][colSize];
+		
+		for (int row = 0; row < rowSize; row++) {
+			for (int col = 0; col < colSize; col++) {
+				if (map[row][col].power > 0) {
+					tops.add(map[row][col]);
+				}
+			}
+		}
+		
+	}
+	
+	public static boolean lazer(Top attacker, Top defender) {
 		
 		Queue<Node> nodes = new ArrayDeque<>();
 		nodes.offer(new Node(attacker.row, attacker.col));
@@ -215,6 +229,7 @@ public class Main {
 				if (map[row][col].power < 0) {
 					map[row][col].power = 0;
 				}
+				
 			}
 			
 		}
@@ -261,11 +276,6 @@ public class Main {
 			for (int col = 0; col < colSize; col++) {
 				int power = Integer.parseInt(inputs[col]);
 				map[row][col] = new Top(row, col, power);
-				
-				if (power > 0) {
-					tops.add(map[row][col]);
-				}
-				
 			}
 		}
 		
