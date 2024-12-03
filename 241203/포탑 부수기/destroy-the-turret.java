@@ -13,7 +13,6 @@ public class Main {
 		int col;
 		int power;
 		int attackedAt;
-		boolean isDamaged;
 		
 		Top(int row, int col, int power) {
 			this.row = row;
@@ -80,6 +79,7 @@ public class Main {
 	static int handicap;
 	static int roundCount;
 	static int[][] powers;
+	static boolean[][] isDamaged;
 	static List<Top> tops;
 	
 	public static void main(String[] args) throws IOException {
@@ -98,10 +98,15 @@ public class Main {
 				return;
 			}
 			
+			isDamaged = new boolean[rowSize][colSize];
+			
 			// 1. 공격자 선정
 			Collections.sort(tops);
 			Top attacker = tops.get(0);
+			isDamaged[attacker.row][attacker.col] = true;
+			
 			Top defender = tops.get(tops.size() - 1);	
+			isDamaged[defender.row][defender.col] = true;
 			
 			// 2. 공격
 			powers[attacker.row][attacker.col] += handicap;
@@ -114,7 +119,8 @@ public class Main {
 					int nRow = (defender.row + dr[dir] + rowSize) % rowSize;
 					int nCol = (defender.col + dc[dir] + colSize) % colSize;
 					
-					if (powers[nRow][nCol] > 0) {
+					if (nRow != attacker.row && nCol != attacker.col) {
+						isDamaged[nRow][nCol] = true;
 						powers[nRow][nCol] -= (powers[attacker.row][attacker.col] / 2);
 					}
 					
@@ -128,7 +134,7 @@ public class Main {
 			
 			// 4. 포탑 정비 (이미 부서진 포탑은 정비 불가)
 			repairTop(attacker, defender);
-
+			
 		}
 		
 		int max = Integer.MIN_VALUE;
@@ -144,8 +150,8 @@ public class Main {
 	
 	public static boolean attack(Top attacker, Top defender) {
 		
-		boolean isPossible = false;
 		boolean[][] isVisited = new boolean[rowSize][colSize];
+		
 		Queue<Node> nodes = new ArrayDeque<>();
 		nodes.offer(new Node(attacker.row, attacker.col));
 		isVisited[attacker.row][attacker.col] = true;
@@ -159,9 +165,11 @@ public class Main {
 			if (node.row == defender.row && node.col == defender.col) {
 				
 				powers[node.row][node.col] -= attackPower;
+				
 				Node prev = node.prev;
 				while(!Objects.isNull(prev.prev)) {
 					powers[prev.row][prev.col] -= (attackPower / 2);
+					isDamaged[prev.row][prev.col] = true;
 					prev = prev.prev;
 				}
 				
@@ -192,13 +200,9 @@ public class Main {
 	public static void sync(Top attacker) {
 		
 		attacker.power = powers[attacker.row][attacker.col];
+		
 		for (int tCount = 0; tCount < tops.size(); tCount++) {
 			Top top = tops.get(tCount);
-			
-			if (top.power != powers[top.row][top.col]) {
-				top.isDamaged = true;
-			}
-			
 			top.power = powers[top.row][top.col];
 		}
 		
@@ -231,8 +235,7 @@ public class Main {
 			
 			Top top = tops.get(tCount);
 			
-			if (top.isDamaged || top.equals(attacker) || top.equals(defender)) {
-				top.isDamaged = false;
+			if (isDamaged[top.row][top.col] || top.equals(attacker) || top.equals(defender)) {
 				continue;
 			}		
 			
