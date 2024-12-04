@@ -222,10 +222,6 @@ public class Main {
 				}
 			}
 			
-			for (Person p : people) {
-				System.out.println(p.toString());
-			}
-			
 		}
 
 		sb.append(output());
