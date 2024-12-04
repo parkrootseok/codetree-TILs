@@ -127,7 +127,7 @@ public class Main {
 		private boolean isMoveable(int nRow, int nCol) {
 			
 			for (int row = nRow; row <= nRow + this.h; row++) {
-				for (int col = nCol; col <= nRow + this.w; col++) {
+				for (int col = nCol; col <= nCol + this.w; col++) {
 					
 					if (outRange(row, col)) {
 						return false;
@@ -220,6 +220,10 @@ public class Main {
 					p.check();
 					p.isChange = false;
 				}
+			}
+			
+			for (Person p : people) {
+				System.out.println(p.toString());
 			}
 			
 		}
