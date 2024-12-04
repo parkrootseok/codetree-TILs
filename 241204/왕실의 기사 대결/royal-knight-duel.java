@@ -107,7 +107,6 @@ public class Main {
 			
 		}
 		
-		
 		private boolean isValid() {
 			
 			// 자신의 위치가 체스판 안에 있는지 확인
@@ -170,12 +169,6 @@ public class Main {
 		public boolean isDead() {
 			return this.hp == 0;
 		}
-		
-		@Override
-		public String toString() {
-			return "[idx:" + this.index + "]\n" + "[pos:" + "{r:"+this.row+",c:"+this.col+"}] " + "[hp:" + this.hp + "]";
-		}
-		
 		
 	}
 	
