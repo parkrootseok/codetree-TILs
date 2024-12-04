@@ -100,8 +100,6 @@ public class Main {
 				people[p.index].index = p.index;
 				people[p.index].row = p.row;
 				people[p.index].col = p.col;
-				people[p.index].h = p.h;
-				people[p.index].w = p.w;
 				people[p.index].isChange = p.isChange;
 			}
 			
