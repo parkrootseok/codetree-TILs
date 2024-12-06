@@ -7,27 +7,43 @@ import java.io.*;
  **/
 public class Main {
 	
-	public static class Node implements Comparable<Node> {
+	public static class Position implements Comparable<Position> {
 		
-		int max;
-		int angle;
 		int row;
 		int col;
 		
-		public Node(int max, int angle) {
-			this.max = max;
-			this.angle = angle;
-		}
-		
-		public Node(int max, int angle, int row, int col) {
-			this.max = max;
-			this.angle = angle;
+		public Position(int row, int col) {
+			super();
 			this.row = row;
 			this.col = col;
 		}
+
+		@Override
+		public int compareTo(Position o) {
+			if (this.col != o.col) {
+				return Integer.compare(this.col, o.col);
+			}
+			return Integer.compare(o.row, this.row);
+		}
+		
+	}
+	
+	public static class Node implements Comparable<Node> {
+		
+		int row;
+		int col;
+		int max;
+		int angle;
+		
+		public Node(int row, int col, int max, int angle) {
+			this.row = row;
+			this.col = col;
+			this.max = max;
+			this.angle = angle;
+		}
 		
 		@Override
-		public int compareTo(Node o) {
+		public int compareTo(Main.Node o) {
 			
 			if (this.max != o.max) {
 				return Integer.compare(o.max, this.max);
@@ -37,15 +53,18 @@ public class Main {
 				return Integer.compare(this.angle, o.angle);
 			}
 			
-			if (this.col != o.col) {
+			if (this.col != o.angle) {
 				return Integer.compare(this.col, o.col);
 			}
 			
-			return Integer.compare(this.row, o.row);
+			
+			return Integer.compare(this.row, o.col);
+			
 		}
 		
+		
 	}
-
+	
 	public static final int SIZE = 5;
 	public static final int[] dr = {0, 1, -1, 0};
 	public static final int[] dc = {-1, 0, 0, 1};
@@ -57,10 +76,11 @@ public class Main {
 	static int K;
 	static int M;
 	static int[][] map;
-	static Queue<Integer> candidates;
+	static Queue<Integer> piece;
 	static int answer;
 	
-	static boolean[][] isVisited;
+	static int[][] copy;
+ 	static boolean[][] isVisited;
 	
 	public static void main(String[] args) throws IOException {
         
@@ -71,40 +91,55 @@ public class Main {
 		input();
 		
 		for (int k = 1; k <= K; k++) {
-
-			List<Node> nodes = new ArrayList<>();
-			for (int row = 1; row <= 3; row++) {
 			
-				for (int col = 1; col <= 3; col++) {
-					
-					Node node = findAngle(row, col);
-					node.row = row;
-					node.col = col;
-					nodes.add(node);
-                    
+			List<Node> candidates = new ArrayList<>();
+			
+			for (int angle = 1; angle <= 3; angle++) {
+
+				for (int row = 1; row <= 3; row++) {
+					for (int col = 1; col <= 3; col++) {
+						
+						rotate(angle, row - 1, col - 1);
+						
+						int score = 0;
+						isVisited = new boolean[SIZE][SIZE];
+						for (int r = 0; r < SIZE; r++) {
+							for (int c = 0; c < SIZE; c++) {
+								if (!isVisited[r][c]) {
+									score += bfs(r, c);
+								}
+							}	
+						}
+						
+						if (0 < score) {
+							candidates.add(new Node(row, col, score, angle));
+						}
+						
+					}
 				}
 				
 			}
 			
-			Collections.sort(nodes);
-			Node node = nodes.get(0);
-			rotation(node.angle, node.row, node.col);
-			
-			if (node.max == 0) {
+			if (candidates.isEmpty()) {
 				break;
 			}
+			
+			Collections.sort(candidates);
+			Node candidate = candidates.get(0);
+			rotate(candidate.angle, candidate.row - 1, candidate.col - 1);
+			map = copy;
 			
 			int score = 0;
 			while (true) {
 				
 				int cScore = 0;
 				isVisited = new boolean[SIZE][SIZE];
-				for (int row = SIZE - 1; row >= 0; row--) {
-					for (int col = 0; col < SIZE; col++) {
-						if (!isVisited[row][col]) {
-							cScore += getScore(row, col);
+				for (int r = SIZE - 1; 0 <= r; r--) {
+					for (int c = 0; c < SIZE; c++) {
+						if (!isVisited[r][c]) {
+							cScore += getScore(r, c);
 						}
-					}
+					}	
 				}
 				
 				if (cScore == 0) {
@@ -126,183 +161,72 @@ public class Main {
 	
 	public static int getScore(int row, int col) {
 		
-		Queue<int[]> scoreQ = new ArrayDeque<>();
-		Queue<int[]> q = new ArrayDeque<>();
-		q.offer(new int[]{row, col});
+		PriorityQueue<Position> positions = new PriorityQueue<Position>();
+		Queue<int[]> posQ = new ArrayDeque<int[]>();
+		posQ.offer(new int[] {row, col});
 		isVisited[row][col] = true;
+		positions.add(new Position(row, col));
 		
-		while (!q.isEmpty()) {
-			
-			int[] pos = q.poll();
+		while (!posQ.isEmpty()) {
+		
+			int[] pos = posQ.poll();
 			int cRow = pos[0];
 			int cCol = pos[1];
 			
-			scoreQ.offer(new int[] {cRow, cCol});
-			
 			for (int dir = 0; dir < dr.length; dir++) {
-				
+			
 				int nRow = cRow + dr[dir];
 				int nCol = cCol + dc[dir];
 				
-				if (isOutRange(nRow, nCol) || isVisited[nRow][nCol]) {
-					continue;
-				}
-				
-				if (map[cRow][cCol] == map[nRow][nCol]) {
+				if (isPossible(nRow, nCol) && map[cRow][cCol] == map[nRow][nCol]) {
 					isVisited[nRow][nCol] = true;
-					q.offer(new int[] {nRow, nCol});
+					positions.add(new Position(nRow, nCol));
+					posQ.offer(new int[] {nRow, nCol});
 				}
 				
 			}
 			
 		}
 		
-		if (3 <= scoreQ.size()) {
-			
-			for (int[] pos : scoreQ) {
-				if (candidates.isEmpty()) {
-					break;
+		int count = positions.size();
+		if (3 <= count) {
+			while (!positions.isEmpty()) {
+				Position pos = positions.poll();
+				if (piece.isEmpty()) {
+					map[pos.row][pos.col] = 0;
+				} else {
+					map[pos.row][pos.col] = piece.poll();
 				}
-				map[pos[0]][pos[1]] = candidates.poll();
 			}
-			
-			return scoreQ.size();
-		
+			return count;
 		}
 		
 		return 0;
 		
 	}
-
-	public static void rotation(int angle, int cRow, int cCol) {
-		
-		int size = 3;
-		int sRow = cRow - 1;
-		int sCol = cCol - 1;
-		
-		int[][] copyMap = copy();
-		for (int row = sRow; row < sRow + 3; row++) {
-			for (int col = sCol; col < sCol + 3; col++) {
-				
-				int ox = row - sRow;
-				int oy = col - sCol;
-				
-				int rx = oy;
-				int ry = size - ox - 1;
-				
-				switch (angle) {
-					case 0:
-						rx = oy;
-						ry = size - ox - 1;
-						break;
-					case 1:
-						rx = size - ox - 1;
-						ry = size - oy - 1;
-						break;
-					case 2:
-						rx = size - oy - 1;
-						ry = ox;
-						break;
-				}
-				
-				copyMap[rx + sRow][ry + sCol] = map[row][col];
-				
-			}
-		}
-		
-		map = copyMap;
-		
-	}
 	
-	public static Node findAngle(int cRow, int cCol) {
+	public static int bfs(int row, int col) {
 		
-		int max = 0;
-		int mAngle = 0;
-		int size = 3;
-		int sRow = cRow - 1;
-		int sCol = cCol - 1;
-
-		for (int angle = 0; angle < 3; angle++) {
-			
-			int[][] copyMap = copy();
-			for (int row = sRow; row < sRow + 3; row++) {
-				for (int col = sCol; col < sCol + 3; col++) {
-					
-					int ox = row - sRow;
-					int oy = col - sCol;
-					
-					int rx = oy;
-					int ry = size - ox - 1;
-					
-					switch (angle) {
-						case 0:
-							rx = oy;
-							ry = size - ox - 1;
-							break;
-						case 1:
-							rx = size - ox - 1;
-							ry = size - oy - 1;
-							break;
-						case 2:
-							rx = size - oy - 1;
-							ry = ox;
-							break;
-					}
-					
-					copyMap[rx + sRow][ry + sCol] = map[row][col];
-					
-				}
-				
-			}
-			
-			int score = 0;
-			isVisited = new boolean[SIZE][SIZE];
-			for (int row = SIZE - 1; row >= 0; row--) {
-				for (int col = 0; col < SIZE; col++) {
-					if (!isVisited[row][col]) {
-						score += check(copyMap, row, col);
-					}
-				}
-			}
-	
-			if (max < score) {
-				max = score;
-				mAngle = angle;
-			}
-			
-		}
-		
-		return new Node(max, mAngle);
-		
-	}
-	
-	public static int check(int[][] cMap, int row, int col) {
-		
-		Queue<int[]> q = new ArrayDeque<>();
-		q.offer(new int[]{row, col});
+		Queue<int[]> posQ = new ArrayDeque<int[]>();
+		posQ.offer(new int[] {row, col});
 		isVisited[row][col] = true;
+		int count = 1;
 		
-		int count = 0;
-		while (!q.isEmpty()) {
-			
-			int[] pos = q.poll();
+		while (!posQ.isEmpty()) {
+		
+			int[] pos = posQ.poll();
 			int cRow = pos[0];
 			int cCol = pos[1];
 			
-			count++;
-			
 			for (int dir = 0; dir < dr.length; dir++) {
-				
+			
 				int nRow = cRow + dr[dir];
 				int nCol = cCol + dc[dir];
 				
-				if (isOutRange(nRow, nCol) || isVisited[nRow][nCol]) {
-					continue;
-				}
-				
-				if (cMap[cRow][cCol] == cMap[nRow][nCol]) {
+				if (isPossible(nRow, nCol) && copy[cRow][cCol] == copy[nRow][nCol]) {
 					isVisited[nRow][nCol] = true;
-					q.offer(new int[] {nRow, nCol});
+					count++;
+					posQ.offer(new int[] {nRow, nCol});
 				}
 				
 			}
@@ -317,18 +241,58 @@ public class Main {
 		
 	}
 	
-	public static boolean isOutRange(int row, int col) {
-		return row < 0 || SIZE <= row || col < 0 || SIZE <= col;
+	public static void rotate(int angle, int row, int col) {
+		
+		int size = 3;
+		copy = copy();
+		for (int sRow = row; sRow < row + 3; sRow++) {
+			for (int sCol = col; sCol < col + 3; sCol++) {
+				
+				int oRow = sRow - row;
+				int oCol = sCol - col;
+				
+				int cRow = oCol;
+				int cCol = size - oRow - 1;
+				
+				switch (angle) {
+					case 2:
+						cRow = size - oRow - 1;
+						cCol = size - oCol - 1;
+						break;
+					case 3:
+						cRow = size - oCol - 1;
+						cCol = oRow;
+						break;
+				}
+				
+				copy[cRow + row][cCol + col] = map[sRow][sCol];
+				
+			}
+			
+		}
+		
+	}
+	
+	public static boolean isPossible(int row, int col) {
+		
+		if (row < 0 || SIZE <= row || col < 0 || SIZE <= col) {
+			return false;
+		}
+		
+		if (isVisited[row][col]) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public static int[][] copy() {
 		
 		int[][] copy = new int[SIZE][SIZE];
-		
 		for (int row = 0; row < SIZE; row++) {
 			for (int col = 0; col < SIZE; col++) {
 				copy[row][col] = map[row][col];
-			}
+			}	
 		}
 		
 		return copy;
@@ -350,9 +314,9 @@ public class Main {
 		}
 		
 		inputs = br.readLine().trim().split(" ");
-		candidates = new ArrayDeque<>();
+		piece = new ArrayDeque<>();
 		for (int m = 0; m < M; m++) {
-			candidates.offer(Integer.parseInt(inputs[m]));
+			piece.offer(Integer.parseInt(inputs[m]));
 		}
 		
 	}
