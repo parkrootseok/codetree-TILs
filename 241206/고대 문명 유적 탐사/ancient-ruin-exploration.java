@@ -20,10 +20,10 @@ public class Main {
 
 		@Override
 		public int compareTo(Position o) {
-			if (this.col != o.col) {
-				return Integer.compare(this.col, o.col);
+			if (this.col == o.col) {
+				return Integer.compare(o.row, this.row);
 			}
-			return Integer.compare(o.row, this.row);
+			return Integer.compare(this.col, o.col);
 		}
 		
 	}
@@ -76,6 +76,7 @@ public class Main {
 	static int K;
 	static int M;
 	static int[][] map;
+	static List<Position> usePieces;
 	static Queue<Integer> piece;
 	static int answer;
 	
@@ -112,7 +113,7 @@ public class Main {
 						}
 						
 						if (0 < score) {
-							candidates.add(new Node(row, col, score, angle));
+							candidates.add(new Node(row , col, score, angle));
 						}
 						
 					}
@@ -133,8 +134,9 @@ public class Main {
 			while (true) {
 				
 				int cScore = 0;
+				usePieces = new ArrayList<Position>();
 				isVisited = new boolean[SIZE][SIZE];
-				for (int r = SIZE - 1; 0 <= r; r--) {
+				for (int r = 0; r < SIZE; r++) {
 					for (int c = 0; c < SIZE; c++) {
 						if (!isVisited[r][c]) {
 							cScore += getScore(r, c);
@@ -146,6 +148,7 @@ public class Main {
 					break;
 				}
 				
+				chagePiece();
 				score += cScore;
 				
 			}
@@ -159,13 +162,19 @@ public class Main {
 		
     }
 	
+	public static void chagePiece() {
+		Collections.sort(usePieces);
+		for (Position pos : usePieces) {
+			map[pos.row][pos.col] = piece.poll();
+		}
+	}
+	
 	public static int getScore(int row, int col) {
 		
-		PriorityQueue<Position> positions = new PriorityQueue<Position>();
+		List<Position> positions = new ArrayList<Position>();
 		Queue<int[]> posQ = new ArrayDeque<int[]>();
 		posQ.offer(new int[] {row, col});
 		isVisited[row][col] = true;
-		positions.add(new Position(row, col));
 		
 		while (!posQ.isEmpty()) {
 		
@@ -173,30 +182,35 @@ public class Main {
 			int cRow = pos[0];
 			int cCol = pos[1];
 			
+			positions.add(new Position(cRow, cCol));
+			
 			for (int dir = 0; dir < dr.length; dir++) {
 			
 				int nRow = cRow + dr[dir];
 				int nCol = cCol + dc[dir];
 				
-				if (isPossible(nRow, nCol) && map[cRow][cCol] == map[nRow][nCol]) {
-					isVisited[nRow][nCol] = true;
-					positions.add(new Position(nRow, nCol));
-					posQ.offer(new int[] {nRow, nCol});
+				if (outRange(nRow, nCol) ) {
+					continue;
 				}
 				
+				if (isVisited[nRow][nCol]) {
+					continue;
+				}
+				
+				if (map[cRow][cCol] != map[nRow][nCol]) {
+					continue;
+				}
+				
+				isVisited[nRow][nCol] = true;
+				posQ.offer(new int[] {nRow, nCol});
+			
 			}
 			
 		}
 		
-		int count = positions.size();
-		if (3 <= count) {
-			while (!positions.isEmpty()) {
-				Position pos = positions.poll();
-				if (!piece.isEmpty()) {
-					map[pos.row][pos.col] = piece.poll();
-				}
-			}
-			return count;
+		if (3 <= positions.size()) {
+			usePieces.addAll(positions);
+			return positions.size();
 		}
 		
 		return 0;
@@ -221,11 +235,21 @@ public class Main {
 				int nRow = cRow + dr[dir];
 				int nCol = cCol + dc[dir];
 				
-				if (isPossible(nRow, nCol) && copy[cRow][cCol] == copy[nRow][nCol]) {
-					isVisited[nRow][nCol] = true;
-					count++;
-					posQ.offer(new int[] {nRow, nCol});
+				if (outRange(nRow, nCol) ) {
+					continue;
 				}
+				
+				if (isVisited[nRow][nCol]) {
+					continue;
+				}
+				
+				if (copy[cRow][cCol] != copy[nRow][nCol]) {
+					continue;
+				}
+				
+				count++;
+				isVisited[nRow][nCol] = true;
+				posQ.offer(new int[] {nRow, nCol});
 				
 			}
 			
@@ -271,17 +295,8 @@ public class Main {
 		
 	}
 	
-	public static boolean isPossible(int row, int col) {
-		
-		if (row < 0 || SIZE <= row || col < 0 || SIZE <= col) {
-			return false;
-		}
-		
-		if (isVisited[row][col]) {
-			return false;
-		}
-		
-		return true;
+	public static boolean outRange(int row, int col) {
+		return row < 0 || SIZE <= row || col < 0 || SIZE <= col;
 	}
 	
 	public static int[][] copy() {
