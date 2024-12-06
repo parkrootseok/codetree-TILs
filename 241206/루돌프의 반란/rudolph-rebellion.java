@@ -81,37 +81,20 @@ public class Main {
 		
 		for (int m = 1; m <= M; m++) {
 			
+			moveRudolph(m, findCandidate());
+			
 			for (int p = 1; p <= P; p++) {
-				if (isStun[p]) {
-					if (time[p] == m) {
-						isStun[p] = false;
-					}
+				
+				if (isStun[p] && time[p] == m) {
+					isStun[p] = false;
 				}
-			}
-			
-			// 1. 루돌프와 가장 가까운 산타 찾기
-			int findIndex = findCandidate();
-			
-			// 2. 루돌프 이동
-			moveRudolph(m, findIndex);
-			
-			// 3. 산타 이동
-			for (int p = 1; p <= P; p++) {
+				
 				if (isAlive[p] && !isStun[p]) {
 					moveSanta(m, p);
 				}
 			}
 			
-			// 4. 점수 증가
-			boolean isFlag = true;
-			for (int p = 1; p <= P; p++) {
-				if (isAlive[p]) {
-					isFlag = false;
-					score[p]++;
-				}
-			}
-			
-			if (isFlag) {
+			if (!isContinue()) {
 				break;
 			}
 			
@@ -272,12 +255,19 @@ public class Main {
 		return 1 <= row && row <= N && 1 <= col && col <= N;
 	}
 	
-	public static void addScore() {
+	public static boolean isContinue() {
+		
+		boolean isFlag = true;
+		
 		for (int p = 1; p <= P; p++) {
 			if (isAlive[p]) {
+				isFlag = false;
 				score[p]++;
 			}
 		}
+		
+		return isFlag;
+		
 	}
 	
 	public static void input() throws IOException {
