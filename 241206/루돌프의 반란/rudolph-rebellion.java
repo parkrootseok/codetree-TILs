@@ -56,11 +56,11 @@ public class Main {
 	static BufferedWriter bw;
 	static StringBuilder sb;
 	
-	static int N;
-	static int M;
-	static int P;
-	static int D;
-	static int C;
+	static int size;
+	static int gameRount;
+	static int santaCount;
+	static int santaPower;
+	static int rudolphPower;
 	
 	static Node rudolph;
 	static Node[] santas;
@@ -79,11 +79,11 @@ public class Main {
 		
 		input();
 		
-		for (int m = 1; m <= M; m++) {
+		for (int m = 1; m <= gameRount; m++) {
 			
 			moveRudolph(m, findCandidate());
 			
-			for (int p = 1; p <= P; p++) {
+			for (int p = 1; p <= santaCount; p++) {
 				
 				if (isStun[p] && time[p] == m) {
 					isStun[p] = false;
@@ -110,7 +110,7 @@ public class Main {
 	public static int findCandidate() {
 		
 		List<Node> candidates = new ArrayList<>();
-		for (int p = 1; p <= P; p++) {
+		for (int p = 1; p <= santaCount; p++) {
 			
 			if (isAlive[p]) {
 				Node s = santas[p];
@@ -147,15 +147,15 @@ public class Main {
 		rudolph.row += dr[mDir];
 		rudolph.col += dc[mDir];
 		
-		if (s.row == rudolph.row && s.col == rudolph.col) {
+		if (isConflict(s.row, s.col)) {
 			
 			map[s.row][s.col] = EMPTY;
-			s.row += (dr[mDir] * C);
-			s.col += (dc[mDir] * C);
+			s.row += (dr[mDir] * rudolphPower);
+			s.col += (dc[mDir] * rudolphPower);
 			
 			interaction(mDir, index);
 			
-			score[index] += C;
+			score[index] += rudolphPower;
 			time[index] = round + 2; 
 			isStun[index] = true;
 			
@@ -191,14 +191,14 @@ public class Main {
 		s.row += dr[mDir];
 		s.col += dc[mDir];
 		
-		if (s.row == rudolph.row && s.col == rudolph.col) {
-
-			s.row -= (dr[mDir] * D);
-			s.col -= (dc[mDir] * D);
+		if (isConflict(s.row, s.col)) {
 			
+			s.row -= (dr[mDir] * santaPower);
+			s.col -= (dc[mDir] * santaPower);
+		
 			interaction((mDir + 2) % 4, index);
 			
-			score[index] += D;
+			score[index] += santaPower;
 			time[index] = round + 2; 
 			isStun[index] = true;
 			
@@ -224,7 +224,7 @@ public class Main {
 				break;
 			}
 			
-			if (0 == map[cRow][cCol]) {
+			if (isEmpty(cRow, cCol)) {
 				map[cRow][cCol] = cSanta.index;
 				break;
 			}
@@ -241,7 +241,7 @@ public class Main {
 	
 	public static void debug() {
 		System.out.println("{row:"+rudolph.row+",col:"+rudolph.col+"}");
-		for (int p = 1; p <= P; p++) {
+		for (int p = 1; p <= santaCount; p++) {
 			Node santa = santas[p];
 			System.out.println("{idx:"+p+",row:"+santa.row+",col:"+santa.col+",scr:"+score[p]+"}");
 		}
@@ -252,14 +252,22 @@ public class Main {
 	}
 	
 	public static boolean isInRange(int row, int col) {
-		return 1 <= row && row <= N && 1 <= col && col <= N;
+		return 1 <= row && row <= size && 1 <= col && col <= size;
+	}
+	
+	public static boolean isEmpty(int row, int col) {
+		return 0 == map[row][col];
+	}
+	
+	public static boolean isConflict(int row, int col) {
+		return row == rudolph.row && col == rudolph.col;
 	}
 	
 	public static boolean isContinue() {
 		
 		boolean isFlag = false;
 		
-		for (int p = 1; p <= P; p++) {
+		for (int p = 1; p <= santaCount; p++) {
 			if (isAlive[p]) {
 				isFlag = true;
 				score[p]++;
@@ -273,25 +281,25 @@ public class Main {
 	public static void input() throws IOException {
 		
 		String[] inputs = br.readLine().trim().split(" ");
-		N = Integer.parseInt(inputs[0]);
-		M = Integer.parseInt(inputs[1]);
-		P = Integer.parseInt(inputs[2]);
-		C = Integer.parseInt(inputs[3]);
-		D = Integer.parseInt(inputs[4]);
+		size = Integer.parseInt(inputs[0]);
+		gameRount = Integer.parseInt(inputs[1]);
+		santaCount = Integer.parseInt(inputs[2]);
+		rudolphPower = Integer.parseInt(inputs[3]);
+		santaPower = Integer.parseInt(inputs[4]);
 		
-		map = new int[N + 1][N + 1];
+		map = new int[size + 1][size + 1];
 		
 		inputs = br.readLine().trim().split(" ");
 		rudolph = new Node(Integer.parseInt(inputs[0]), Integer.parseInt(inputs[1]));
 		
 		
-		santas = new Node[P + 1];
-		score = new int[P + 1];
-		time = new int[P + 1];
-		isAlive = new boolean[P + 1];
+		santas = new Node[santaCount + 1];
+		score = new int[santaCount + 1];
+		time = new int[santaCount + 1];
+		isAlive = new boolean[santaCount + 1];
 		Arrays.fill(isAlive, true);
-		isStun = new boolean[P + 1];
-		for (int sCount = 0; sCount < P; sCount++) {
+		isStun = new boolean[santaCount + 1];
+		for (int sCount = 0; sCount < santaCount; sCount++) {
 			inputs = br.readLine().trim().split(" ");
 			int index = Integer.parseInt(inputs[0]);
 			int row = Integer.parseInt(inputs[1]);
@@ -303,7 +311,7 @@ public class Main {
 	}
 	
 	public static void output() {
-		for (int p = 1; p <= P; p++) {
+		for (int p = 1; p <= santaCount; p++) {
 			sb.append(score[p]).append(" ");
 		}
 	}
