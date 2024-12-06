@@ -257,11 +257,11 @@ public class Main {
 	
 	public static boolean isContinue() {
 		
-		boolean isFlag = true;
+		boolean isFlag = false;
 		
 		for (int p = 1; p <= P; p++) {
 			if (isAlive[p]) {
-				isFlag = false;
+				isFlag = true;
 				score[p]++;
 			}
 		}
