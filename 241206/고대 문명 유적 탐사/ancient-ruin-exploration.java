@@ -13,7 +13,6 @@ public class Main {
 		int col;
 		
 		public Position(int row, int col) {
-			super();
 			this.row = row;
 			this.col = col;
 		}
@@ -134,7 +133,6 @@ public class Main {
 				score = bfs(map);
 			}
 			
-			
 			answer[k] = sum;
 			
 		}
@@ -217,35 +215,32 @@ public class Main {
 		
 	}
 	
-	public static void rotate(int angle, int sx, int sy) {
+	public static void rotate(int angle, int sRow, int sCol) {
 		
 		int size = 3;
 		copy();
-		for (int i = sx; i < sx + 3; i++) {
-			for (int j = sy; j < sy + 3; j++) {
+		for (int row = sRow; row < sRow + 3; row++) {
+			for (int col = sCol; col < sCol + 3; col++) {
 				
-				int ox = i - sx;
-				int oy = j - sy;
-				
-				int rx = oy;
-				int ry = size - ox - 1;
+				int oR = row - sRow;
+				int oC = col - sCol;
+				int cR = oC;
+				int cC = size - oR - 1;
 				
 				switch (angle) {
-					case 1:
-						rx = oy;
-						ry = size - ox - 1;
-						break;
+				
 					case 2:
-						rx = size - ox - 1;
-						ry = size - oy - 1;
+						cR = size - oR - 1;
+						cC = size - oC - 1;
 						break;
 					case 3:
-						rx = size - oy - 1;
-						ry = ox;
+						cR = size - oC - 1;
+						cC = oR;
 						break;
+						
 				}
-				
-				copy[rx + sx][ry + sy] = map[i][j];
+
+				copy[cR + sRow][cC + sCol] = map[row][col];
 				
 			}
 			
