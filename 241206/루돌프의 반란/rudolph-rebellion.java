@@ -103,7 +103,17 @@ public class Main {
 			}
 			
 			// 4. 점수 증가
-			addScore();
+			boolean isFlag = true;
+			for (int p = 1; p <= P; p++) {
+				if (isAlive[p]) {
+					isFlag = false;
+					score[p]++;
+				}
+			}
+			
+			if (isFlag) {
+				break;
+			}
 			
 		}
 		
