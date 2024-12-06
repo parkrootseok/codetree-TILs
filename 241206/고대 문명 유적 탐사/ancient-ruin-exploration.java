@@ -192,9 +192,7 @@ public class Main {
 		if (3 <= count) {
 			while (!positions.isEmpty()) {
 				Position pos = positions.poll();
-				if (piece.isEmpty()) {
-					map[pos.row][pos.col] = 0;
-				} else {
+				if (!piece.isEmpty()) {
 					map[pos.row][pos.col] = piece.poll();
 				}
 			}
