@@ -139,9 +139,9 @@ public class Main {
 				
 			}
 			
-			Node best = findBest();
-			if (!Objects.isNull(best)) {
-				rotationMaze(best.row, best.col, best.size);
+			Node condition = getBestCondition();
+			if (!Objects.isNull(condition)) {
+				rotationMaze(condition.row, condition.col, condition.size);
 			}
 			
 		}
@@ -153,7 +153,7 @@ public class Main {
     }
 	
 	
-	public static Node findBest() {
+	public static Node getBestCondition() {
 	
 		for (int cSize = 1; cSize <= size; cSize++) {
 			
