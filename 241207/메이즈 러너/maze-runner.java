@@ -137,7 +137,7 @@ public class Main {
 						
 						if (isPossible(row, col, cSize)) {
 							rotate(row, col, cSize);
-							return;
+							break;
 						}
 						
 					}
