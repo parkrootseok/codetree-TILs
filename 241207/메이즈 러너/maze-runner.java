@@ -125,7 +125,26 @@ public class Main {
 				
 			}
 			
-			rotation();
+			for (int cSize = 1; cSize <= size; cSize++) {
+				
+				for (int row = 1; row <= size; row++) {
+					
+					for (int col = 1; col <= size; col++) {
+						
+						if (size < row + cSize || size < col + cSize) {
+							continue;
+						}
+						
+						if (isPossible(row, col, cSize)) {
+							rotate(row, col, cSize);
+							return;
+						}
+						
+					}
+					
+				}
+				
+			}
 			
 		}
 		
@@ -135,33 +154,7 @@ public class Main {
 		
     }
 	
-	
-	public static void rotation() {
-	
-		for (int cSize = 1; cSize <= size; cSize++) {
-			
-			for (int row = 1; row <= size; row++) {
-				
-				for (int col = 1; col <= size; col++) {
-					
-					if (size < row + cSize || size < col + cSize) {
-						continue;
-					}
-					
-					if (isPossible(row, col, cSize)) {
-						rotationMaze(row, col, cSize);
-						return;
-					}
-					
-				}
-				
-			}
-			
-		}
-		
-	}
-	
-	public static void rotationMaze(int sRow, int sCol, int cSize) {
+	public static void rotate(int sRow, int sCol, int cSize) {
 		
 		List<Person> rotationPerson = new ArrayList<>();
 		int[][] rotationMap = new int[size + 1][size + 1];
@@ -209,9 +202,6 @@ public class Main {
 	
 	public static boolean isPossible(int row, int col, int cSize) {
 		
-		// (row, col) / (row + cSize, col) / (row, col + cSize) / (row + cSize, col + cSize)
-		// 위 좌표안에 탈출구가 있는지 확인
-		
 		boolean hasExit = false;
 		for (int cRow = row; cRow <= row + cSize; cRow++) {
 			
@@ -228,14 +218,11 @@ public class Main {
 			
 		}
 		
-		// 탈출구가 있다면, 참가자도 존재하는지 확인
 		if (hasExit) {
 			for (Person p : people) {
-				
 				if (!isArrived[p.index] && (row <= p.row && p.row <= row + cSize) && (col <= p.col && p.col <= col + cSize)) {
 					return true;
 				}
-				
 			}	
 		}
 		
@@ -250,9 +237,9 @@ public class Main {
 				return false;
 			}
 		}
-		
-		
+	
 		return true;
+		
 	}
 	
 	public static void input() throws IOException{
