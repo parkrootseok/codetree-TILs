@@ -7,6 +7,20 @@ import java.io.*;
  **/
 public class Main {
 	
+	public static class Node {
+		
+		int row;
+		int col;
+		int size;
+		
+		public Node(int row, int col, int size) {
+			this.row = row;
+			this.col = col;
+			this.size = size;
+		}
+			
+	}
+	
 	public static class Person {
 		
 		int index;
@@ -125,25 +139,9 @@ public class Main {
 				
 			}
 			
-			for (int cSize = 1; cSize <= size; cSize++) {
-				
-				for (int row = 1; row <= size; row++) {
-					
-					for (int col = 1; col <= size; col++) {
-						
-						if (size < row + cSize || size < col + cSize) {
-							continue;
-						}
-						
-						if (isPossible(row, col, cSize)) {
-							rotate(row, col, cSize);
-							break;
-						}
-						
-					}
-					
-				}
-				
+			Node best = findBest();
+			if (!Objects.isNull(best)) {
+				rotationMaze(best.row, best.col, best.size);
 			}
 			
 		}
@@ -154,11 +152,37 @@ public class Main {
 		
     }
 	
-	public static void rotate(int sRow, int sCol, int cSize) {
+	
+	public static Node findBest() {
+	
+		for (int cSize = 1; cSize <= size; cSize++) {
+			
+			for (int row = 1; row <= size; row++) {
+				
+				for (int col = 1; col <= size; col++) {
+					
+					if (size < row + cSize || size < col + cSize) {
+						continue;
+					}
+					
+					if (isPossible(row, col, cSize)) {
+						return new Node(row, col, cSize);
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+		return null;
+		
+	}
+	
+	public static void rotationMaze(int sRow, int sCol, int cSize) {
 		
 		List<Person> rotationPerson = new ArrayList<>();
 		int[][] rotationMap = new int[size + 1][size + 1];
-		
 		
 		for (int row = sRow; row <= sRow + cSize; row++) {
 			
@@ -239,7 +263,6 @@ public class Main {
 		}
 	
 		return true;
-		
 	}
 	
 	public static void input() throws IOException{
